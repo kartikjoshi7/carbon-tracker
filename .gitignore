@@ -1,0 +1,26 @@
+# Dependencies & Environments
+node_modules/
+.env
+env/
+venv/
+ENV/
+dist/
+build/
+
+# Python Cache & Testing
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Large Media Assets (Keeps repo < 10MB)
+*.mp4
+*.png
+*.jpg
+*.jpeg
+*.svg
+
+# IDE and System Files
+.vscode/
+.idea/
+.DS_Store
