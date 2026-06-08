@@ -1,0 +1,73 @@
+import React, { useState } from 'react';
+
+const WasteForm: React.FC = () => {
+  const [mealType, setMealType] = useState<string>('lunch');
+  const [grams, setGrams] = useState<number>(0);
+  const [co2, setCo2] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [insight, setInsight] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setInsight(null);
+    try {
+      const res = await fetch('http://localhost:8000/api/v1/footprint/waste', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          meal_type: mealType,
+          estimated_waste_grams: grams
+        })
+      });
+      const data = await res.json();
+      setCo2(data.calculated_co2);
+      
+      setTimeout(() => {
+        setInsight(`SVIT cafeteria portions are large. Saving ${grams}g of food lowers waste footprint by ${data.calculated_co2}kg CO2e.`);
+        setLoading(false);
+      }, 2000);
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="glass-panel">
+      <h2>Waste Tracking</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label>Meal Type</label>
+          <select value={mealType} onChange={e => setMealType(e.target.value)}>
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label>Estimated Waste (grams)</label>
+          <input type="number" min="0" max="5000" step="0.1" value={grams} onChange={e => setGrams(Number(e.target.value))} required />
+        </div>
+        <button type="submit" disabled={loading}>Track Waste</button>
+      </form>
+      
+      <div aria-live="polite">
+        {co2 !== null && <div className="score-display">Calculated CO₂e: {co2} kg</div>}
+        {loading && co2 !== null && (
+          <div className="insight-card">
+            <div className="skeleton skeleton-text"></div>
+            <div className="skeleton skeleton-text short"></div>
+          </div>
+        )}
+        {!loading && insight && (
+          <div className="insight-card">
+            <strong>Eco-Concierge:</strong> {insight}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
+
+export default WasteForm;
