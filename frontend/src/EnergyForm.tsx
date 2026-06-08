@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
 
-const EnergyForm: React.FC = () => {
+interface Props {
+  onTrackStart: () => void;
+  onTrackSuccess: (text: string) => void;
+  onTrackError: () => void;
+}
+
+const EnergyForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackError }) => {
   const [roommates, setRoommates] = useState<number>(1);
   const [acHours, setAcHours] = useState<number>(0);
   const [sharedKwh, setSharedKwh] = useState<number>(0);
   const [co2, setCo2] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [insight, setInsight] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setInsight(null);
+    onTrackStart();
     try {
       const res = await fetch('http://localhost:8000/api/v1/footprint/energy', {
         method: 'POST',
@@ -27,12 +32,13 @@ const EnergyForm: React.FC = () => {
       
       // Simulate polling/waiting for AI insight
       setTimeout(() => {
-        setInsight("Talk to your roommates to optimize the split AC usage. Saving " + data.calculated_co2 + "kg CO2e lowers the Dabhoi PG electricity bill for everyone.");
+        onTrackSuccess(`Talk to your roommates to optimize the split AC usage. Saving ${data.calculated_co2}kg CO2e lowers the Dabhoi PG electricity bill for everyone.`);
         setLoading(false);
       }, 2000);
 
     } catch (err) {
       console.error(err);
+      onTrackError();
       setLoading(false);
     }
   };
@@ -56,20 +62,11 @@ const EnergyForm: React.FC = () => {
         <button type="submit" disabled={loading}>Track Energy</button>
       </form>
       
-      <div aria-live="polite">
-        {co2 !== null && <div className="score-display">Calculated CO₂e: {co2} kg</div>}
-        {loading && co2 !== null && (
-          <div className="insight-card">
-            <div className="skeleton skeleton-text"></div>
-            <div className="skeleton skeleton-text short"></div>
-          </div>
-        )}
-        {!loading && insight && (
-          <div className="insight-card">
-            <strong>Eco-Concierge:</strong> {insight}
-          </div>
-        )}
-      </div>
+      {co2 !== null && (
+        <div className="score-display">
+          Calculated CO₂e: <span>{co2} kg</span>
+        </div>
+      )}
     </section>
   );
 };
