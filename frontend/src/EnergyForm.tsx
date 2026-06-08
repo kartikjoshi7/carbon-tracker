@@ -32,7 +32,7 @@ const EnergyForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackErro
       
       // Simulate polling/waiting for AI insight
       setTimeout(() => {
-        onTrackSuccess(`Talk to your roommates to optimize the split AC usage. Saving ${data.calculated_co2}kg CO2e lowers the Dabhoi PG electricity bill for everyone.`);
+        onTrackSuccess(`Talk to your roommates to optimize the split AC usage. Saving ${data.calculated_co2}kg CO2e lowers the shared apartment electricity bill for everyone.`);
         setLoading(false);
       }, 2000);
 

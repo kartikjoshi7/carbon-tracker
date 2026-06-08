@@ -29,7 +29,7 @@ const WasteForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackError
       setCo2(data.calculated_co2);
       
       setTimeout(() => {
-        onTrackSuccess(`SVIT cafeteria portions are large. Saving ${grams}g of food lowers waste footprint by ${data.calculated_co2}kg CO2e.`);
+        onTrackSuccess(`University cafeteria portions are large. Saving ${grams}g of food lowers waste footprint by ${data.calculated_co2}kg CO2e.`);
         setLoading(false);
       }, 2000);
     } catch (err) {

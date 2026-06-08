@@ -31,7 +31,7 @@ const TransitForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackErr
       setCo2(data.calculated_co2);
       
       setTimeout(() => {
-        onTrackSuccess(`Coordinating a shared rickshaw from Dabhoi to SVIT campus reduces your per-capita emission by ${data.calculated_co2}kg CO2e compared to riding alone!`);
+        onTrackSuccess(`Coordinating a shared commute to campus reduces your per-capita emission by ${data.calculated_co2}kg CO2e compared to riding alone!`);
         setLoading(false);
       }, 2000);
     } catch (err) {
