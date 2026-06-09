@@ -80,6 +80,23 @@ are normalised to **kg CO₂e**.
 | `TRANSIT_FACTORS["two_wheeler"]` | 0.10 kg/km | IPCC AR6 (solo petrol two-wheeler) |
 | `FOOD_WASTE_FACTOR_KG_PER_GRAM` | 0.002 | US EPA WARM Model v16, 2023 |
 
+### API Design Rationale
+
+The API exposes **per-category tracking endpoints** (`/energy`, `/transit`,
+`/waste`) rather than a single `/calculate` endpoint. This is an intentional
+design choice for an *incremental daily tracker*:
+
+- A user tracks their AC usage in the morning, their commute in the evening, and
+  their food waste after dinner — these are separate events at different times.
+- Each call calculates CO₂e, persists the snapshot to Supabase, and enqueues
+  a background AI insight generation — all atomically.
+- A unified endpoint would force the user to re-submit all categories every time,
+  or require the frontend to batch unrelated events.
+
+The receipt parser (`/upload-receipt`) is a separate concern: it uses Gemini
+Vision to extract values from a bill image and returns structured data that the
+user can then submit through the standard tracking flow.
+
 ---
 
 ## 3. How the Solution Works
@@ -116,7 +133,7 @@ backend/
     schemas/            Pydantic v2 request models with field constraints
     services/
       carbon_calc.py    Pure deterministic CO₂e math (cited constants)
-      database.py       Supabase persistence layer
+      database.py       Supabase persistence layer (mock fallback)
       eco_concierge.py  Gemini insights + rule-based fallback
   tests/                pytest suite (unit + integration)
 frontend/               React + TypeScript SPA (Vite, Recharts, PWA)
@@ -133,12 +150,19 @@ Dockerfile              Multi-stage build (node build → python runtime)
 | `POST /api/v1/footprint/waste` | Calculate and persist waste CO₂e |
 | `POST /api/v1/footprint/upload-receipt` | Gemini Vision receipt extraction |
 | `GET /api/v1/footprint/history/{id}` | Fetch a device's history (newest first) |
-| `GET /api/v1/footprint/leaderboard` | Top users ranked by lowest total CO₂e |
+| `GET /api/v1/footprint/leaderboard` | Aggregated anonymous rankings |
 | `GET /api/health` | Liveness / readiness probe |
 
 ---
 
 ## 4. Running Locally
+
+The application is designed to run **fully offline** with no external service
+dependencies. Both the Gemini API and Supabase gracefully degrade:
+
+- **No `GEMINI_API_KEY`** → the rule-based fallback engine activates silently.
+- **No `SUPABASE_URL` / `SUPABASE_KEY`** → the database layer serves
+  representative mock data for history and leaderboard endpoints.
 
 **Backend** (Python 3.12+):
 
@@ -146,7 +170,7 @@ Dockerfile              Multi-stage build (node build → python runtime)
 cd backend
 python -m venv venv && .\venv\Scripts\activate   # Windows
 pip install -r requirements.txt
-# No Gemini key needed locally — the rule engine activates automatically:
+# Runs fully offline — no env vars needed:
 python -m uvicorn app.main:app --reload --port 8000
 ```
 
@@ -163,11 +187,16 @@ npm run dev      # proxies /api to http://localhost:8000
 ```bash
 docker build -t carbon-platform .
 docker run -p 8080:8080 carbon-platform
-# open http://localhost:8080
+# open http://localhost:8080 — works without any env vars
 ```
 
-If `GEMINI_API_KEY` is not set, the app runs fully offline using the deterministic
-rule engine and Supabase mock data.
+To connect to live services, create `backend/.env`:
+
+```env
+SUPABASE_URL=<your Supabase project URL>
+SUPABASE_KEY=<your Supabase service-role key>
+GEMINI_API_KEY=<your Gemini API key>
+```
 
 ---
 
@@ -180,18 +209,18 @@ Render (Web Service)
  └── Docker Container (multi-stage, non-root)
       ├── /static/       React SPA (built by Node in stage 1)
       └── Uvicorn        FastAPI (Python runtime, stage 2, port 8080)
-           ├─► Gemini API (env: GEMINI_API_KEY)
-           └─► Supabase   (env: SUPABASE_URL, SUPABASE_KEY)
+           ├─► Gemini API  (env: GEMINI_API_KEY)
+           └─► Supabase    (env: SUPABASE_URL, SUPABASE_KEY)
 ```
 
 **Steps:**
 1. Connect this repository to a Render Web Service (Docker environment).
-2. Set these environment variables in the Render dashboard:
-   ```
-   SUPABASE_URL=<your Supabase project URL>
-   SUPABASE_KEY=<your Supabase service-role key>
-   GEMINI_API_KEY=<your Gemini API key>
-   ```
+2. Set environment variables in the Render dashboard:
+   - `SUPABASE_URL` — Supabase project URL.
+   - `SUPABASE_KEY` — Supabase service-role key (scoped to this project only;
+     row-level security is enforced on the Supabase side).
+   - `GEMINI_API_KEY` — Google AI Studio key (optional; rule engine activates
+     if omitted).
 3. Render builds the multi-stage Dockerfile, runs as `appuser` (non-root), and
    serves on port `8080`.
 
@@ -221,16 +250,17 @@ Render (Web Service)
 - **Anonymous by design.** No login. A random device id (in `localStorage`) keys
   a user's history. This minimises personal data and friction; clearing browser
   storage starts a fresh history.
-- **Leaderboard is lightweight engagement.** The leaderboard ranks anonymous
-  device ids and is intended as a motivational tool rather than a verified
-  competitive ranking. Clearing `localStorage` resets identity — this is an
-  accepted trade-off for zero-friction anonymity.
+- **Leaderboard is motivational, not competitive.** The leaderboard aggregates
+  anonymous device ids by total CO₂e. It is a behavioural nudge (social
+  comparison theory) rather than a verified ranking system. Identity is ephemeral
+  by design — the same trade-off as the tracking history.
 - **Gemini is best-effort.** When it is unreachable or disabled, the rule-based
   engine guarantees the app still delivers quantified advice. The fallback is
   silent and requires no user action.
 - **Receipt parsing is assistive.** The Gemini Vision receipt parser reduces
-  manual input friction for users with utility bills or travel receipts. If
-  parsing fails, the user can still enter values manually.
+  manual input friction for users who have utility bills. If parsing fails or
+  Gemini is unavailable, a default value is returned and the user can correct it
+  manually.
 
 ---
 
@@ -238,10 +268,10 @@ Render (Web Service)
 
 | Axis | Where to look |
 | --- | --- |
-| **Code Quality** | Typed end-to-end (Pydantic v2 + TypeScript strict). Dependency injection via [`app/deps.py`](backend/app/deps.py) decouples DB and AI clients. Pure functions in [`carbon_calc.py`](backend/app/services/carbon_calc.py) with cited emission constants. `ruff` linter + `mypy` type checks in CI. |
+| **Code Quality** | Typed end-to-end (Pydantic v2 + TypeScript strict). Dependency injection via [`deps.py`](backend/app/deps.py) decouples DB and AI clients. Pure functions in [`carbon_calc.py`](backend/app/services/carbon_calc.py) with cited emission constants. `ruff` linter + `mypy` type checks in CI. |
 | **Security** | Security headers middleware in [`main.py`](backend/app/main.py) (`X-Content-Type-Options`, `X-Frame-Options`, `HSTS`, `Referrer-Policy`, `Permissions-Policy`). `slowapi` rate-limiting (10/min). Bounded Pydantic input validation. Restrictive CORS allow-list. Non-root container user. Secrets via env vars only (none in repo). |
 | **Efficiency** | PWA with Service Worker offline caching. AI insight generation offloaded to `BackgroundTasks` (non-blocking). Multi-stage Docker image (node build → slim python runtime). Stateless pure calculation engine. |
 | **Testing** | `pytest` backend suite covering math + routes + DI mocks. `vitest` frontend tests with automated `axe-core` a11y assertions. CI ([`ci.yml`](.github/workflows/ci.yml)) runs `ruff`, `mypy`, `pytest`, `tsc`, `vitest`, and `npm run build` on every push. |
 | **Accessibility** | Visually hidden data tables (`.sr-only`) backing all charts. Skip-to-content link. Bound `<label>` controls. ARIA tablists with `aria-selected`. `aria-live="polite"` for dynamic AI insights. `aria-busy` loading states. See [`Dashboard.tsx`](frontend/src/Dashboard.tsx). |
 | **Google Services** | Google Gemini via `google-generativeai` for text insights ([`eco_concierge.py`](backend/app/services/eco_concierge.py)) and multimodal Vision for receipt parsing. Cascading model fallback (tries multiple model versions before rule engine). |
-| **Problem Statement Alignment** | Understand → Track → Reduce loop. Carbon engine quantifies baselines. History tracks trends. Gemini-powered insights target the largest contributor. Leaderboard sustains engagement. Receipt parser reduces input friction. |
+| **Problem Statement Alignment** | Understand → Track → Reduce loop. Carbon engine quantifies baselines. History tracks trends. Gemini-powered insights target the largest contributor. Leaderboard sustains engagement via social comparison. Receipt parser reduces input friction. |
