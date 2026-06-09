@@ -1,0 +1,33 @@
+# Version control
+.git
+.gitignore
+
+# Dependencies (rebuilt inside container)
+node_modules
+backend/venv
+backend/__pycache__
+
+# IDE / OS
+.vscode
+.idea
+.DS_Store
+*.swp
+
+# Testing & coverage (not needed in production image)
+backend/tests
+backend/.coverage
+htmlcov
+.pytest_cache
+.ruff_cache
+
+# Documentation
+README.md
+docs/
+
+# CI
+.github
+
+# Environment (secrets injected at runtime)
+.env
+.env.example
+backend/.env

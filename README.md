@@ -2,7 +2,7 @@
 
 ![build](https://img.shields.io/badge/build-passing-brightgreen)
 ![coverage](https://img.shields.io/badge/coverage-90%25-brightgreen)
-![tests](https://img.shields.io/badge/tests-75_passed-brightgreen)
+![tests](https://img.shields.io/badge/tests-89_passed-brightgreen)
 ![python](https://img.shields.io/badge/python-3.12-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
@@ -138,19 +138,24 @@ FastAPI automatically generates interactive OpenAPI documentation at
 ```text
 backend/
   app/
+    config.py           Centralized Settings (frozen dataclass, env-driven)
     deps.py             Dependency injection (Supabase + Gemini clients)
     main.py             FastAPI app, security middleware, SPA serving
-    routers/            API route definitions
-    schemas/            Pydantic v2 request models with field constraints
+    py.typed            PEP 561 inline type annotation marker
+    routers/            API route definitions with Pydantic response models
+    schemas/            Pydantic v2 request + response models with constraints
     services/
-      carbon_calc.py    Pure deterministic CO₂e math (cited constants)
+      factors.py        Published emission factors (CEA, IPCC, EPA, BEE)
+      carbon_calc.py    Pure deterministic CO₂e math (imports from factors)
       database.py       Supabase persistence layer (mock fallback)
       eco_concierge.py  Gemini insights + rule-based fallback
-  tests/                pytest suite (68 tests: unit + integration + DI + services)
+  tests/                pytest suite (89 tests: unit + integration + DI + services + config)
 frontend/               React + TypeScript SPA (Vite, Recharts, PWA)
 .github/
   workflows/ci.yml      CI: lint + type-check + test + build on every push
   dependabot.yml        Automated dependency vulnerability scanning
+.dockerignore           Minimized Docker build context
+.env.example            Documented environment variables (no secrets)
 Dockerfile              Multi-stage build (node build → python runtime)
 ```
 
@@ -268,6 +273,7 @@ behind Render's load balancer without shared state.
 | Backend integration | `pytest tests/test_api.py -v` | All endpoints, Pydantic 422 validation, DI mock overrides | 15 tests, 93% coverage on `footprint.py` |
 | Backend services | `pytest tests/test_eco_concierge.py tests/test_database.py tests/test_deps.py -v` | Fallback logic, AI success+failure paths, mock DB, DI singleton, Gemini model cascade, receipt vision parsing | 31 tests |
 | Backend security | `pytest tests/test_main.py -v` | Security headers on every response, SPA fallback | 7 tests |
+| Config & factors | `pytest tests/test_config.py tests/test_factors.py -v` | Settings immutability, env overrides, emission factor ranges | 14 tests |
 | Frontend components | `cd frontend && npx vitest run` | Component rendering, tab navigation, form bindings | — |
 | Frontend a11y | `cd frontend && npx vitest run` | Automated **axe-core** assertions — zero violations | — |
 | Lint | `ruff check app/ tests/` | Code quality gates | Zero violations |
@@ -309,7 +315,7 @@ behind Render's load balancer without shared state.
 | **Code Quality** | Typed end-to-end (Pydantic v2 request *and* response models + TypeScript strict). Dependency injection via [`deps.py`](backend/app/deps.py) decouples DB and AI clients. Pure functions in [`carbon_calc.py`](backend/app/services/carbon_calc.py) with cited emission constants. Module docstrings on every file. Named constants — zero magic strings or numbers. `ruff` linter + `mypy` strict type checks in CI. PEP 561 `py.typed` marker. | Zero `ruff` violations. Zero `mypy` errors. 100% coverage on math engine. |
 | **Security** | Security headers middleware in [`main.py`](backend/app/main.py). `slowapi` rate-limiting (10/min). Bounded Pydantic input validation. Restrictive CORS allow-list. Non-root container user. Secrets via env vars only (none in repo). HTTPS enforced at edge. Dependabot enabled. | 5 security header assertions in `test_main.py`. |
 | **Efficiency** | PWA with Service Worker offline caching. AI insight generation offloaded to `BackgroundTasks` (non-blocking). Multi-stage Docker image (node build → slim python runtime). Stateless pure calculation engine. | Stateless, horizontally scalable. |
-| **Testing** | 75 backend tests across 6 test modules. `vitest` frontend tests with automated `axe-core` a11y assertions. CI runs lint, type-check, test, and build on every push. | 90% backend coverage. Zero axe-core violations. |
+| **Testing** | 89 backend tests across 8 test modules. `vitest` frontend tests with automated `axe-core` a11y assertions. CI runs lint, type-check, test, and build on every push. | 90% backend coverage. Zero axe-core violations. |
 | **Accessibility** | Visually hidden data tables (`.sr-only`) backing all charts. Skip-to-content link. Bound `<label>` controls. ARIA tablists with `aria-selected`. `aria-live="polite"` for dynamic AI insights. `aria-busy` loading states. See [`Dashboard.tsx`](frontend/src/Dashboard.tsx). | Zero axe-core violations in CI. |
 | **Google Services** | Google Gemini via `google-generativeai` for text insights ([`eco_concierge.py`](backend/app/services/eco_concierge.py)) and multimodal Vision for receipt parsing. Cascading model fallback (tries multiple model versions before rule engine). | Fallback tested in `test_eco_concierge.py`. |
 | **Problem Statement Alignment** | Understand → Track → Reduce loop. Carbon engine quantifies baselines. History tracks trends. Gemini-powered insights target the largest contributor. Leaderboard sustains engagement via social comparison. Receipt parser reduces input friction. | All three pillars mapped to features with tests. |
