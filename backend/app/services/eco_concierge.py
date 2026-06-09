@@ -23,7 +23,7 @@ def generate_insights_sync(category: str, metric_value: float, calculated_co2: f
         Provide a concise, highly tailored, 1-2 sentence actionable tip.
         Focus on split utility bills, coordinating shared commutes to campus, and cafeteria/meal waste if applicable.
         """
-        
+
         models_to_try = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro']
         last_error = None
         for model_name in models_to_try:
@@ -34,7 +34,7 @@ def generate_insights_sync(category: str, metric_value: float, calculated_co2: f
             except Exception as e:
                 logger.warning(f"Model {model_name} failed: {e}")
                 last_error = e
-                
+
         logger.error(f"All Gemini models failed. Last error: {last_error}")
         return _fallback_generator(category, metric_value, calculated_co2)
     except Exception as e:
@@ -100,7 +100,7 @@ async def parse_receipt_image(file_bytes: bytes) -> dict:
             try:
                 model = genai.GenerativeModel(model_name)
                 response = model.generate_content([prompt, image])
-                
+
                 text = response.text.strip()
                 if text.startswith("```json"):
                     text = text[7:-3].strip()
@@ -110,7 +110,7 @@ async def parse_receipt_image(file_bytes: bytes) -> dict:
             except Exception as e:
                 logger.warning(f"Vision model {model_name} failed: {e}")
                 last_error = e
-                
+
         logger.error(f"All Gemini vision models failed. Last error: {last_error}")
         return {"category": "energy", "value": 150.0}
     except Exception as e:
