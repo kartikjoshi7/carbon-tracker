@@ -15,8 +15,6 @@ def generate_insights_sync(category: str, metric_value: float, calculated_co2: f
     try:
         import google.generativeai as genai  # type: ignore
         genai.configure(api_key=gemini_key)
-        # Using a fast, lightweight model for background tasks
-        model = genai.GenerativeModel('gemini-1.5-flash')
 
         prompt = f"""
         You are an Eco-Concierge tailored to a university student living in a shared off-campus apartment.
@@ -25,10 +23,22 @@ def generate_insights_sync(category: str, metric_value: float, calculated_co2: f
         Provide a concise, highly tailored, 1-2 sentence actionable tip.
         Focus on split utility bills, coordinating shared commutes to campus, and cafeteria/meal waste if applicable.
         """
-        response = model.generate_content(prompt)
-        return response.text.strip()
+        
+        models_to_try = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro']
+        last_error = None
+        for model_name in models_to_try:
+            try:
+                model = genai.GenerativeModel(model_name)
+                response = model.generate_content(prompt)
+                return response.text.strip()
+            except Exception as e:
+                logger.warning(f"Model {model_name} failed: {e}")
+                last_error = e
+                
+        logger.error(f"All Gemini models failed. Last error: {last_error}")
+        return _fallback_generator(category, metric_value, calculated_co2)
     except Exception as e:
-        logger.error(f"Error during Gemini generation: {e}")
+        logger.error(f"Error initializing Gemini: {e}")
         return _fallback_generator(category, metric_value, calculated_co2)
 
 def _fallback_generator(category: str, metric_value: float, calculated_co2: float) -> str:
@@ -81,19 +91,28 @@ async def parse_receipt_image(file_bytes: bytes) -> dict:
         from PIL import Image
 
         genai.configure(api_key=gemini_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
-
         image = Image.open(io.BytesIO(file_bytes))
         prompt = "Analyze this receipt or bill. Extract the total electricity usage in kWh (for energy bills) or total distance in km (for travel receipts). Return ONLY a raw JSON object with keys 'category' (either 'energy' or 'transit') and 'value' (a float). Do not include markdown code block formatting."
 
-        response = model.generate_content([prompt, image])
-        # Very simple JSON extraction
-        text = response.text.strip()
-        if text.startswith("```json"):
-            text = text[7:-3].strip()
+        models_to_try = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro-vision']
+        last_error = None
+        for model_name in models_to_try:
+            try:
+                model = genai.GenerativeModel(model_name)
+                response = model.generate_content([prompt, image])
+                
+                text = response.text.strip()
+                if text.startswith("```json"):
+                    text = text[7:-3].strip()
 
-        data = json.loads(text)
-        return {"category": data.get("category", "energy"), "value": float(data.get("value", 0.0))}
+                data = json.loads(text)
+                return {"category": data.get("category", "energy"), "value": float(data.get("value", 0.0))}
+            except Exception as e:
+                logger.warning(f"Vision model {model_name} failed: {e}")
+                last_error = e
+                
+        logger.error(f"All Gemini vision models failed. Last error: {last_error}")
+        return {"category": "energy", "value": 150.0}
     except Exception as e:
-        logger.error(f"Error parsing receipt with Gemini: {e}")
+        logger.error(f"Error initializing Gemini vision: {e}")
         return {"category": "energy", "value": 150.0}
