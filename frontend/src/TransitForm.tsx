@@ -4,14 +4,19 @@ interface Props {
   onTrackStart: () => void;
   onTrackSuccess: (text: string) => void;
   onTrackError: () => void;
+  initialDistance?: number;
 }
 
-const TransitForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackError }) => {
-  const [distance, setDistance] = useState<number>(0);
+const TransitForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackError, initialDistance }) => {
+  const [distance, setDistance] = useState<number>(initialDistance || 12.5);
   const [mode, setMode] = useState<string>('shared_rickshaw');
-  const [passengers, setPassengers] = useState<number>(1);
+  const [passengers, setPassengers] = useState<number>(3);
   const [co2, setCo2] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (initialDistance) setDistance(initialDistance);
+  }, [initialDistance]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

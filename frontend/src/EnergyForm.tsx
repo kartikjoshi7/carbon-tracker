@@ -4,14 +4,19 @@ interface Props {
   onTrackStart: () => void;
   onTrackSuccess: (text: string) => void;
   onTrackError: () => void;
+  initialKwh?: number;
 }
 
-const EnergyForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackError }) => {
-  const [roommates, setRoommates] = useState<number>(1);
-  const [acHours, setAcHours] = useState<number>(0);
-  const [sharedKwh, setSharedKwh] = useState<number>(0);
+const EnergyForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackError, initialKwh }) => {
+  const [roommates, setRoommates] = useState<number>(3);
+  const [acHours, setAcHours] = useState<number>(5.5);
+  const [sharedKwh, setSharedKwh] = useState<number>(initialKwh || 120.5);
   const [co2, setCo2] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (initialKwh) setSharedKwh(initialKwh);
+  }, [initialKwh]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,9 +1,8 @@
-from fastapi import APIRouter, BackgroundTasks
-
+from fastapi import APIRouter, BackgroundTasks, UploadFile, File
 from app.schemas.footprint import EnergyTrackingRequest, TransitTrackingRequest, WasteTrackingRequest
 from app.services.carbon_calc import calculate_energy_co2, calculate_transit_co2, calculate_waste_co2
-from app.services.database import insert_footprint_log
-from app.services.eco_concierge import process_eco_insights
+from app.services.database import insert_footprint_log, get_footprint_history, get_leaderboard
+from app.services.eco_concierge import process_eco_insights, parse_receipt_image
 
 router = APIRouter(prefix="/api/v1/footprint", tags=["footprint"])
 
@@ -92,3 +91,19 @@ async def track_waste(request: WasteTrackingRequest, background_tasks: Backgroun
         "calculated_co2": co2,
         "message": "Waste footprint tracked successfully. AI is generating insights in the background."
     }
+
+@router.get("/history/{user_id}")
+async def fetch_history(user_id: str):
+    data = get_footprint_history(user_id)
+    return {"history": data}
+
+@router.get("/leaderboard")
+async def fetch_leaderboard():
+    data = get_leaderboard()
+    return {"leaderboard": data}
+
+@router.post("/upload-receipt")
+async def upload_receipt(file: UploadFile = File(...)):
+    contents = await file.read()
+    parsed_data = await parse_receipt_image(contents)
+    return parsed_data

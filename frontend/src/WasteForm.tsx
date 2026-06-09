@@ -8,7 +8,7 @@ interface Props {
 
 const WasteForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackError }) => {
   const [mealType, setMealType] = useState<string>('lunch');
-  const [grams, setGrams] = useState<number>(0);
+  const [grams, setGrams] = useState<number>(250);
   const [co2, setCo2] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
