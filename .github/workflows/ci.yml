@@ -24,10 +24,11 @@ jobs:
       - name: Type check (mypy)
         run: pip install mypy && mypy app/
       - name: Unit & integration tests
-        run: pytest tests/ -v
         env:
           SUPABASE_URL: "https://mock.supabase.co"
-          SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.xkXCYxpMbId78W1OCa1aNXNIAEE-yJeACJE7XUvC12k"
+        run: |
+          export SUPABASE_KEY=$(python -c "import jwt; print(jwt.encode({'role': 'service_role'}, 'secret', algorithm='HS256'))")
+          pytest tests/ -v
 
   frontend:
     name: Frontend (React + TypeScript)
