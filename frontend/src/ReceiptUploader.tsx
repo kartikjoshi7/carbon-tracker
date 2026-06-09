@@ -17,7 +17,7 @@ const ReceiptUploader: React.FC<Props> = ({ onParsed }) => {
     formData.append('file', file);
 
     try {
-      const res = await fetch('http://localhost:8000/api/v1/footprint/upload-receipt', {
+      const res = await fetch('/api/v1/footprint/upload-receipt', {
         method: 'POST',
         body: formData,
       });

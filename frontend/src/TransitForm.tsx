@@ -23,7 +23,7 @@ const TransitForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackErr
     setLoading(true);
     onTrackStart();
     try {
-      const res = await fetch('http://localhost:8000/api/v1/footprint/transit', {
+      const res = await fetch('/api/v1/footprint/transit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

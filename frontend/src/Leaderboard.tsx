@@ -5,7 +5,7 @@ const Leaderboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/v1/footprint/leaderboard')
+    fetch('/api/v1/footprint/leaderboard')
       .then(res => res.json())
       .then(data => {
         setLeaders(data.leaderboard || []);

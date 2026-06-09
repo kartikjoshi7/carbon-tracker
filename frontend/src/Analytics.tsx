@@ -8,7 +8,7 @@ const Analytics: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/v1/footprint/history/user_123')
+    fetch('/api/v1/footprint/history/user_123')
       .then(res => res.json())
       .then(resData => {
         setData(resData.history || []);

@@ -17,7 +17,7 @@ const WasteForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackError
     setLoading(true);
     onTrackStart();
     try {
-      const res = await fetch('http://localhost:8000/api/v1/footprint/waste', {
+      const res = await fetch('/api/v1/footprint/waste', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

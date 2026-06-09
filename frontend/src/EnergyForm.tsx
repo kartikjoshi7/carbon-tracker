@@ -23,7 +23,7 @@ const EnergyForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackErro
     setLoading(true);
     onTrackStart();
     try {
-      const res = await fetch('http://localhost:8000/api/v1/footprint/energy', {
+      const res = await fetch('/api/v1/footprint/energy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
