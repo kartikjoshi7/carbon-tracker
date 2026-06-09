@@ -24,7 +24,7 @@ def generate_insights_sync(category: str, metric_value: float, calculated_co2: f
         Focus on split utility bills, coordinating shared commutes to campus, and cafeteria/meal waste if applicable.
         """
 
-        models_to_try = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro']
+        models_to_try = ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.5-pro']
         last_error = None
         for model_name in models_to_try:
             try:
@@ -94,7 +94,7 @@ async def parse_receipt_image(file_bytes: bytes) -> dict:
         image = Image.open(io.BytesIO(file_bytes))
         prompt = "Analyze this receipt or bill. Extract the total electricity usage in kWh (for energy bills) or total distance in km (for travel receipts). Return ONLY a raw JSON object with keys 'category' (either 'energy' or 'transit') and 'value' (a float). Do not include markdown code block formatting."
 
-        models_to_try = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro-vision']
+        models_to_try = ['gemini-3.1-flash-image', 'gemini-2.5-flash-image', 'gemini-3.5-flash', 'gemini-2.5-flash']
         last_error = None
         for model_name in models_to_try:
             try:
