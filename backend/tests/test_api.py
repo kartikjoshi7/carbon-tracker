@@ -11,11 +11,11 @@ class TestHealthCheck:
     """Tests for the root health-check endpoint."""
 
     def test_health_check_returns_200(self, client: TestClient) -> None:
-        response = client.get("/")
+        response = client.get("/api/health")
         assert response.status_code == 200
 
     def test_health_check_response_body(self, client: TestClient) -> None:
-        data = client.get("/").json()
+        data = client.get("/api/health").json()
         assert data["status"] == "online"
         assert "message" in data
 
