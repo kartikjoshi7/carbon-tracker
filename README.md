@@ -55,6 +55,27 @@ Save snapshot (Supabase, keyed by anonymous_device_id) → history & leaderboard
 4. **Gamify** — Compare total footprint against other anonymous users on the Leaderboard.
 5. **Automate** — Use the receipt parser to extract values directly from utility bills via Gemini Vision.
 
+### Project Structure
+
+```text
+backend/    FastAPI app — carbon engine, AI services, routes, tests
+frontend/   React + TypeScript SPA — dashboard, charts, accessibility
+.github/    CI workflows
+Dockerfile  Multi-stage production build
+```
+
+### Key API Endpoints
+
+| Method & Path | Purpose |
+| --- | --- |
+| `POST /api/v1/footprint/energy` | Footprint breakdown for energy metrics |
+| `POST /api/v1/footprint/transit` | Footprint breakdown for transit metrics |
+| `POST /api/v1/footprint/waste` | Footprint breakdown for waste metrics |
+| `POST /api/v1/footprint/upload-receipt` | AI vision parsing for utility bills |
+| `GET /api/v1/footprint/history/{id}` | Fetch an anonymous device's history |
+| `GET /api/v1/footprint/leaderboard` | Top 10 users ranked by lowest footprint |
+| `GET /api/health` | Liveness/readiness probe |
+
 ---
 
 ## 4. Running Locally
