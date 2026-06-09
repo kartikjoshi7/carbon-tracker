@@ -9,7 +9,7 @@
 
 **<https://carbon-tracker-gulb.onrender.com>**
 
-> Running as a multi-stage Docker container on Render with live Gemini (Vertex AI) insights and Supabase-backed tracking.
+> Running as a multi-stage Docker container on Render with live Gemini insights and Supabase-backed tracking.
 
 ---
 
@@ -21,7 +21,24 @@
 
 ## 2. Approach and Logic
 
-### Decision Flow
+### System Architecture
+
+```text
+       Frontend                   Backend                    Cloud
+┌────────────────────┐      ┌─────────────────┐      ┌───────────────────┐
+│ React + TypeScript │      │ FastAPI Python  │      │ Google Gemini API │
+│ Vite PWA           │──HTTP│ REST API        │──HTTP│ (Eco-Concierge)   │
+└────────────────────┘      └─────────────────┘      └───────────────────┘
+                                     │
+                                     │HTTP
+                                     ▼
+                            ┌───────────────────┐
+                            │ Supabase (PGSQL)  │
+                            │ (History & Ranks) │
+                            └───────────────────┘
+```
+
+### Logic Flow
 
 ```text
 User inputs (energy, transit, waste)
@@ -38,22 +55,19 @@ Insights generator
 Save snapshot (Supabase, keyed by anonymous_device_id) → history & leaderboards
 ```
 
-### Core Logic
-1. **Deterministic Math Engine** (`carbon_calc.py`): Pure functions calculate CO₂e using cited emission factors (India CEA 2023, IPCC AR6, US EPA WARM).
-2. **Hybrid AI Engine** (`eco_concierge.py`): Generates contextual tips using Gemini. If the API is unreachable, it defaults to a static rules-based generator.
-3. **Dependency Injection**: FastAPI `Depends()` is used to inject Database and AI clients dynamically, keeping service functions pure.
-4. **Non-Blocking Architecture**: Heavy AI text generation runs via `FastAPI.BackgroundTasks` to prevent blocking the HTTP event loop.
+### Feature-to-Challenge Mapping
+
+| Challenge Goal | Platform Feature | Purpose |
+|----------------|------------------|---------|
+| **Understand** | Carbon Engine | Quantifies daily habits into deterministic kg CO₂e metrics. |
+| **Track** | History Dashboard | Visualizes the `anonymous_device_id` history via Recharts. |
+| **Reduce** | Eco-Concierge | Translates raw metrics into actionable, Gemini-powered behavioral tips. |
+| **Sustain Engagement** | Leaderboard | Gamifies reduction by ranking anonymous users against their peers. |
+| **Reduce Friction** | Receipt Parser | Eliminates manual data entry via Gemini Vision OCR extraction. |
 
 ---
 
 ## 3. How the Solution Works
-
-### Features
-1. **Calculate** — Select a category (Energy, Transit, Waste), enter daily metrics, and receive a CO₂e score.
-2. **Reduce** — The AI Eco-Concierge generates a specific reduction strategy based on your input.
-3. **Track** — View historical emissions via interactive Recharts.
-4. **Gamify** — Compare total footprint against other anonymous users on the Leaderboard.
-5. **Automate** — Use the receipt parser to extract values directly from utility bills via Gemini Vision.
 
 ### Project Structure
 
@@ -102,7 +116,16 @@ npm run dev
 
 The project is packaged as a unified multi-stage Docker container and deployed to Render.
 
-**Render Deployment:**
+### Deployment Architecture
+
+```text
+Render (Web Service)
+ └── Docker Container
+      ├── /static (React Built SPA)
+      └── FastAPI (Uvicorn Port 8080)
+```
+
+**Deployment Steps:**
 1. Connect the repository to a Render Web Service.
 2. Set the build environment to `Docker`.
 3. Configure the following environment variables in the Render dashboard:
@@ -133,18 +156,19 @@ The project includes an automated test suite across the backend and frontend:
 
 - **Awareness, not audit**: Emission factors are public averages intended for education.
 - **Anonymous by design**: A randomly generated `anonymous_device_id` (stored in `localStorage`) keys a user's history to minimize personal data collection.
+- **Lightweight Leaderboard**: The leaderboard ranks anonymous device IDs. It is intended as a lightweight engagement feature to encourage footprint reduction, rather than a strictly verified competitive ranking system (clearing `localStorage` resets identity).
 - **AI Degradation**: The Gemini API integration is best-effort. The fallback rule engine handles offline or missing-key scenarios.
 
 ---
 
 ## 8. Evaluation Rubric Mapping
 
-| Axis | Implementation Details |
-|------|---------------|
-| **Code Quality** | Typed end-to-end (`Pydantic v2` + `TypeScript Strict`). Uses dependency injection (`app/deps.py`) to decouple Database and AI clients. Implements pure mathematical functions for CO₂e logic. |
-| **Security** | Implements security headers middleware (`CSP`, `HSTS`, `X-Frame-Options`) and `slowapi` rate-limiting. Secrets are managed via environment variables and excluded from the repository. Container runs as a non-root user. |
-| **Efficiency** | Progressive Web App (PWA) uses a Service Worker for offline caching. Asynchronous `BackgroundTasks` offload AI generation. Deployed as a multi-stage Docker image. |
-| **Testing** | `pytest` backend suite verifies mathematical calculations and endpoint routing. `vitest` tests frontend components alongside `axe-core` accessibility checks. Tested automatically via GitHub Actions CI. |
-| **Accessibility** | Uses visually hidden data tables (`.sr-only`) backing Recharts graphs. Includes skip-to-content links and bound `<label>` controls. Implements `aria-live` for dynamic AI insights. |
-| **Google Services** | Integrates Google Gemini for dynamic Eco-Concierge generation and utility receipt parsing. |
-| **Problem Statement Alignment** | Aligns with the "Understand → Track → Reduce" framework. Calculates baselines, tracks progress via leaderboards, and provides Gemini-powered reduction strategies. |
+| Axis | Implementation Details | Evidence |
+|------|------------------------|----------|
+| **Code Quality** | Typed end-to-end (`Pydantic v2` + `TypeScript Strict`). Uses dependency injection to decouple Database and AI clients. | [`backend/app/deps.py`](backend/app/deps.py) |
+| **Security** | Implements security headers middleware (`CSP`, `HSTS`, `X-Frame-Options`) and `slowapi` rate-limiting. Non-root Docker container. | [`backend/app/main.py`](backend/app/main.py) |
+| **Efficiency** | Progressive Web App (PWA) offline caching. Asynchronous `BackgroundTasks` offload AI generation. | [`backend/app/routers/footprint.py`](backend/app/routers/footprint.py) |
+| **Testing** | 37+ backend tests verify calculations and routing. Frontend tests accessibility via `axe-core`. CI GitHub Actions. | [`backend/tests/test_api.py`](backend/tests/test_api.py) |
+| **Accessibility** | Visually hidden data tables (`.sr-only`) back Recharts. Includes skip-to-content links and bound `<label>` controls. | [`frontend/src/Dashboard.tsx`](frontend/src/Dashboard.tsx) |
+| **Google Services** | Integrates Google Gemini for dynamic Eco-Concierge generation and utility receipt parsing. | [`backend/app/services/eco_concierge.py`](backend/app/services/eco_concierge.py) |
+| **Problem Statement Alignment** | Aligns with the "Understand → Track → Reduce" framework. Calculates baselines, tracks progress, provides Gemini strategies. | [`backend/app/services/carbon_calc.py`](backend/app/services/carbon_calc.py) |
