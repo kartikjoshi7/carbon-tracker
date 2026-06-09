@@ -1,1 +1,1 @@
-# Backend application package
+"""Carbon Footprint Awareness Platform — FastAPI backend."""

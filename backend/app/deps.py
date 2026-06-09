@@ -39,14 +39,14 @@ def get_ai_client() -> Any:
         gemini_key = os.getenv("GEMINI_API_KEY")
         if gemini_key:
             try:
-                import google.generativeai as genai  # type: ignore
+                import google.generativeai as genai  # type: ignore[import-untyped]
                 genai.configure(api_key=gemini_key)
                 _ai_configured = True
                 return genai
             except ImportError:
                 pass
     try:
-        import google.generativeai as genai  # type: ignore
+        import google.generativeai as genai  # type: ignore[import-untyped]
         return genai
     except ImportError:
         return None

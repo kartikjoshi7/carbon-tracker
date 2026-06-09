@@ -1,1 +1,1 @@
-# Pydantic schemas package
+"""Pydantic v2 request/response schemas with field-level validation."""

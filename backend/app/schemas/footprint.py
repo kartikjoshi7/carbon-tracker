@@ -1,3 +1,10 @@
+"""
+Pydantic v2 request schemas for footprint tracking endpoints.
+
+Each schema enforces field-level constraints (``ge``, ``le``, ``Literal``)
+so that invalid input is rejected before it reaches the calculation engine.
+"""
+
 from typing import Literal
 
 from pydantic import BaseModel, Field
