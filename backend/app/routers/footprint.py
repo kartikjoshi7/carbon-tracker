@@ -1,19 +1,20 @@
 from typing import Any
-from fastapi import APIRouter, BackgroundTasks, File, UploadFile, Depends
+
+from fastapi import APIRouter, BackgroundTasks, Depends, File, UploadFile
 from supabase import Client
 
+from app.deps import get_ai_client, get_db_client
 from app.schemas.footprint import EnergyTrackingRequest, TransitTrackingRequest, WasteTrackingRequest
 from app.services.carbon_calc import calculate_energy_co2, calculate_transit_co2, calculate_waste_co2
 from app.services.database import get_footprint_history, get_leaderboard, insert_footprint_log
 from app.services.eco_concierge import parse_receipt_image, process_eco_insights
-from app.deps import get_db_client, get_ai_client
 
 router = APIRouter(prefix="/api/v1/footprint", tags=["footprint"])
 
 
 @router.post("/energy")
 def track_energy(
-    request: EnergyTrackingRequest, 
+    request: EnergyTrackingRequest,
     background_tasks: BackgroundTasks,
     db: Client | None = Depends(get_db_client),
     ai: Any = Depends(get_ai_client)
@@ -47,7 +48,7 @@ def track_energy(
 
 @router.post("/transit")
 def track_transit(
-    request: TransitTrackingRequest, 
+    request: TransitTrackingRequest,
     background_tasks: BackgroundTasks,
     db: Client | None = Depends(get_db_client),
     ai: Any = Depends(get_ai_client)
@@ -90,7 +91,7 @@ def track_transit(
 
 @router.post("/waste")
 def track_waste(
-    request: WasteTrackingRequest, 
+    request: WasteTrackingRequest,
     background_tasks: BackgroundTasks,
     db: Client | None = Depends(get_db_client),
     ai: Any = Depends(get_ai_client)

@@ -39,7 +39,7 @@ def get_ai_client() -> Any:
             except ImportError:
                 pass
     try:
-        import google.generativeai as genai
+        import google.generativeai as genai  # type: ignore
         return genai
     except ImportError:
         return None

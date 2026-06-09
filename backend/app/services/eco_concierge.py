@@ -1,9 +1,8 @@
 import logging
-import os
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
-from typing import Any
 
 def generate_insights_sync(ai: Any, category: str, metric_value: float, calculated_co2: float) -> str:
     """
@@ -82,6 +81,7 @@ async def parse_receipt_image(ai: Any, file_bytes: bytes) -> dict:
     try:
         import io
         import json
+
         from PIL import Image
 
         image = Image.open(io.BytesIO(file_bytes))
