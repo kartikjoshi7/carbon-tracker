@@ -24,7 +24,7 @@ const axe = configureAxe({
 describe('App — Smoke Tests', () => {
   it('renders the hero title', () => {
     render(<App />)
-    expect(screen.getByText('Smart Campus Sustainability Engine')).toBeInTheDocument()
+    expect(screen.getByText('Carbon Footprint Awareness Platform')).toBeInTheDocument()
   })
 
   it('renders the hero subtitle', () => {

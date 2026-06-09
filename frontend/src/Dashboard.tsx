@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
       <a href="#main-content" className="skip-link">Skip to main content</a>
       <main id="main-content">
       <header className="hero-section">
-        <h1 className="emerald-gradient-text">Smart Campus Sustainability Engine</h1>
+        <h1 className="emerald-gradient-text">Carbon Footprint Awareness Platform</h1>
         <p className="hero-subtitle">Real-time CO₂e tracking & AI-driven reduction strategies.</p>
         
         <nav role="tablist" aria-label="Dashboard navigation" style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
