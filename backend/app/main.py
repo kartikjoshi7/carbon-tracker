@@ -1,6 +1,9 @@
+import os
 
-from fastapi import FastAPI, Request  # type: ignore
+from fastapi import FastAPI, HTTPException, Request  # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler  # type: ignore
 from slowapi.errors import RateLimitExceeded  # type: ignore
 from slowapi.util import get_remote_address  # type: ignore
@@ -54,27 +57,22 @@ async def health_check(request: Request) -> dict[str, str]:
 # Include footprint router
 app.include_router(footprint.router)
 
-import os
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-
 # Serve the built React frontend (SPA) if the static directory exists
 if os.path.isdir("static"):
     # Mount the assets folder directly
     if os.path.isdir("static/assets"):
         app.mount("/assets", StaticFiles(directory="static/assets"), name="assets")
-        
+
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         # Let FastAPI handle /api routes normally (they should 404 if not found)
         if full_path.startswith("api/"):
-            from fastapi import HTTPException
             raise HTTPException(status_code=404, detail="API route not found")
-            
+
         # Serve exact file if it exists (e.g., manifest.webmanifest, sw.js)
         file_path = os.path.join("static", full_path)
         if os.path.isfile(file_path):
             return FileResponse(file_path)
-            
+
         # Fallback to index.html for React Router client-side routing
         return FileResponse("static/index.html")
