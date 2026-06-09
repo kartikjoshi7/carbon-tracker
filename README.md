@@ -5,6 +5,14 @@
 
 ---
 
+## 🔗 Live Demo
+
+**<https://carbon-tracker-gulb.onrender.com>**
+
+> Running as a multi-stage Docker container on Render with live Gemini (Vertex AI) insights and Supabase-backed tracking.
+
+---
+
 ## 🎯 Chosen Vertical
 
 **Carbon Footprint Awareness Platform** — This project tackles Challenge 3 by providing a complete, end-to-end carbon tracking and reduction system tailored to university students. It combines deterministic mathematical CO₂e calculations with AI-generated personalized reduction strategies to create a smart, dynamic assistant that drives real behavioral change.
