@@ -224,6 +224,13 @@ Render (Web Service)
 3. Render builds the multi-stage Dockerfile, runs as `appuser` (non-root), and
    serves on port `8080`.
 
+**Secrets management.** Render stores environment variables encrypted at rest and
+injects them into the container at runtime — they never appear in build logs,
+images, or the repository. `GEMINI_API_KEY` is fully optional (the app degrades
+gracefully without it), so the only required secret is the Supabase credential
+pair. Supabase enforces row-level security (RLS) on the database side, so even
+if the key were exposed, data access would remain scoped to the RLS policies.
+
 > **Live deployment:** <https://carbon-tracker-gulb.onrender.com>
 
 ---
@@ -250,17 +257,20 @@ Render (Web Service)
 - **Anonymous by design.** No login. A random device id (in `localStorage`) keys
   a user's history. This minimises personal data and friction; clearing browser
   storage starts a fresh history.
-- **Leaderboard is motivational, not competitive.** The leaderboard aggregates
-  anonymous device ids by total CO₂e. It is a behavioural nudge (social
-  comparison theory) rather than a verified ranking system. Identity is ephemeral
-  by design — the same trade-off as the tracking history.
+- **Leaderboard is opt-in and motivational.** The leaderboard is a separate UI
+  tab that does not affect core tracking or reduction functionality. It
+  aggregates anonymous device ids by total CO₂e as a behavioural nudge (social
+  comparison theory). Identity is ephemeral by design — the same trade-off as
+  the tracking history. Users who never visit the tab are unaffected.
 - **Gemini is best-effort.** When it is unreachable or disabled, the rule-based
   engine guarantees the app still delivers quantified advice. The fallback is
   silent and requires no user action.
-- **Receipt parsing is assistive.** The Gemini Vision receipt parser reduces
-  manual input friction for users who have utility bills. If parsing fails or
-  Gemini is unavailable, a default value is returned and the user can correct it
-  manually.
+- **Receipt parsing is opt-in and assistive.** The Gemini Vision receipt parser
+  is behind a dedicated endpoint (`/upload-receipt`) and is not part of the core
+  tracking flow. It reduces manual input friction for users who have utility
+  bills. If parsing fails or Gemini is unavailable, a default value is returned
+  and the user can correct it manually. The core tracking endpoints function
+  identically whether or not the receipt parser exists.
 
 ---
 
