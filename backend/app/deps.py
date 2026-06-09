@@ -1,8 +1,15 @@
+"""
+Dependency injection providers for Supabase and Google Gemini clients.
+
+Both clients are lazily initialized as singletons on first request.
+If credentials are missing, the providers return ``None``, and the
+calling code gracefully degrades to mock data or rule-based fallbacks.
+"""
 import os
 from typing import Any
 
-from dotenv import load_dotenv  # type: ignore
-from supabase import Client, create_client  # type: ignore
+from dotenv import load_dotenv  # type: ignore[import-untyped]
+from supabase import Client, create_client  # type: ignore[import-untyped]
 
 load_dotenv()
 
