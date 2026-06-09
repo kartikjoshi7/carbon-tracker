@@ -3,12 +3,17 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis
 
 const COLORS = ['#10b981', '#0ea5e9', '#f59e0b'];
 
-const Analytics: React.FC = () => {
+interface AnalyticsProps {
+  userId: string;
+}
+
+const Analytics: React.FC<AnalyticsProps> = ({ userId }) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/v1/footprint/history/user_123')
+    if (!userId) return;
+    fetch(`/api/v1/footprint/history/${userId}`)
       .then(res => res.json())
       .then(resData => {
         setData(resData.history || []);
@@ -18,7 +23,7 @@ const Analytics: React.FC = () => {
         console.error(err);
         setLoading(false);
       });
-  }, []);
+  }, [userId]);
 
   if (loading) return <div className="glass-panel"><p>Loading analytics...</p></div>;
 

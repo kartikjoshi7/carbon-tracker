@@ -27,6 +27,7 @@ class TestEnergyEndpoint:
 
     def test_valid_energy_request(self, client: TestClient) -> None:
         payload = {
+            "user_id": "test_user",
             "roommate_count": 3,
             "ac_hours_logged": 5.5,
             "shared_appliance_kwh": 120.5,
@@ -46,6 +47,7 @@ class TestEnergyEndpoint:
     def test_energy_invalid_ac_hours_returns_422(self, client: TestClient) -> None:
         """AC hours exceeding 24 should fail validation."""
         payload = {
+            "user_id": "test_user",
             "roommate_count": 1,
             "ac_hours_logged": 25.0,
             "shared_appliance_kwh": 10,
@@ -56,6 +58,7 @@ class TestEnergyEndpoint:
     def test_energy_zero_roommates_returns_422(self, client: TestClient) -> None:
         """Zero roommates is invalid (ge=1)."""
         payload = {
+            "user_id": "test_user",
             "roommate_count": 0,
             "ac_hours_logged": 5,
             "shared_appliance_kwh": 10,
@@ -71,6 +74,7 @@ class TestTransitEndpoint:
 
     def test_valid_transit_request(self, client: TestClient) -> None:
         payload = {
+            "user_id": "test_user",
             "distance_km": 12.5,
             "transport_mode": "shared_rickshaw",
             "passenger_count": 3,
@@ -84,6 +88,7 @@ class TestTransitEndpoint:
     def test_transit_invalid_mode_returns_422(self, client: TestClient) -> None:
         """An unrecognized transport mode should fail Literal validation."""
         payload = {
+            "user_id": "test_user",
             "distance_km": 10,
             "transport_mode": "helicopter",
             "passenger_count": 1,
@@ -94,6 +99,7 @@ class TestTransitEndpoint:
     def test_transit_walking_returns_zero_co2(self, client: TestClient) -> None:
         """Walking mode should calculate zero emissions."""
         payload = {
+            "user_id": "test_user",
             "distance_km": 5,
             "transport_mode": "walking",
             "passenger_count": 1,
@@ -105,6 +111,7 @@ class TestTransitEndpoint:
     def test_transit_negative_distance_returns_422(self, client: TestClient) -> None:
         """Negative distance is invalid (ge=0)."""
         payload = {
+            "user_id": "test_user",
             "distance_km": -5,
             "transport_mode": "campus_shuttle",
             "passenger_count": 1,
@@ -120,6 +127,7 @@ class TestWasteEndpoint:
 
     def test_valid_waste_request(self, client: TestClient) -> None:
         payload = {
+            "user_id": "test_user",
             "meal_type": "lunch",
             "estimated_waste_grams": 250,
         }
@@ -131,6 +139,7 @@ class TestWasteEndpoint:
     def test_waste_invalid_meal_type_returns_422(self, client: TestClient) -> None:
         """An unrecognized meal type should fail Literal validation."""
         payload = {
+            "user_id": "test_user",
             "meal_type": "midnight_snack",
             "estimated_waste_grams": 100,
         }
@@ -140,6 +149,7 @@ class TestWasteEndpoint:
     def test_waste_exceeds_max_returns_422(self, client: TestClient) -> None:
         """Waste exceeding 5000g should fail validation."""
         payload = {
+            "user_id": "test_user",
             "meal_type": "dinner",
             "estimated_waste_grams": 6000,
         }

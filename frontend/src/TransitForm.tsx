@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 
 interface Props {
+  userId: string;
   onTrackStart: () => void;
   onTrackSuccess: (text: string) => void;
   onTrackError: () => void;
   initialDistance?: number;
 }
 
-const TransitForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackError, initialDistance }) => {
+const TransitForm: React.FC<Props> = ({ userId, onTrackStart, onTrackSuccess, onTrackError, initialDistance }) => {
   const [distance, setDistance] = useState<number>(initialDistance || 12.5);
   const [mode, setMode] = useState<string>('shared_rickshaw');
   const [passengers, setPassengers] = useState<number>(3);
@@ -27,6 +28,7 @@ const TransitForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackErr
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          user_id: userId,
           distance_km: distance,
           transport_mode: mode,
           passenger_count: passengers

@@ -7,6 +7,10 @@ class EnergyTrackingRequest(BaseModel):
     """
     Validates logged electricity and cooling data for shared living spaces.
     """
+    user_id: str = Field(
+        ...,
+        description="Anonymous device ID"
+    )
     roommate_count: int = Field(
         ...,
         ge=1,
@@ -29,6 +33,10 @@ class TransitTrackingRequest(BaseModel):
     """
     Validates daily campus travel and commuting data.
     """
+    user_id: str = Field(
+        ...,
+        description="Anonymous device ID"
+    )
     distance_km: float = Field(
         ...,
         ge=0.0,
@@ -50,6 +58,10 @@ class WasteTrackingRequest(BaseModel):
     """
     Validates meal or cafeteria food waste data.
     """
+    user_id: str = Field(
+        ...,
+        description="Anonymous device ID"
+    )
     meal_type: Literal["breakfast", "lunch", "dinner"] = Field(
         ...,
         description="The specific meal type associated with the food waste."

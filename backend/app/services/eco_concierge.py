@@ -50,7 +50,7 @@ def _fallback_generator(category: str, metric_value: float, calculated_co2: floa
         return f"University cafeteria portions are large. Saving {metric_value}g of food lowers waste footprint by {calculated_co2}kg CO2e."
     return "Every small action counts towards a greener campus."
 
-async def process_eco_insights(user_id: str, category: str, metric_value: float, calculated_co2: float):
+def process_eco_insights(user_id: str, category: str, metric_value: float, calculated_co2: float):
     """
     Background task to generate eco-concierge insights without blocking the main thread.
     """

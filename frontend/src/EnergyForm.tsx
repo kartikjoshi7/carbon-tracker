@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 
 interface Props {
+  userId: string;
   onTrackStart: () => void;
   onTrackSuccess: (text: string) => void;
   onTrackError: () => void;
   initialKwh?: number;
 }
 
-const EnergyForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackError, initialKwh }) => {
+const EnergyForm: React.FC<Props> = ({ userId, onTrackStart, onTrackSuccess, onTrackError, initialKwh }) => {
   const [roommates, setRoommates] = useState<number>(3);
   const [acHours, setAcHours] = useState<number>(5.5);
   const [sharedKwh, setSharedKwh] = useState<number>(initialKwh || 120.5);
@@ -27,6 +28,7 @@ const EnergyForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackErro
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          user_id: userId,
           roommate_count: roommates,
           ac_hours_logged: acHours,
           shared_appliance_kwh: sharedKwh

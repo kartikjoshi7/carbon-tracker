@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 
 interface Props {
+  userId: string;
   onTrackStart: () => void;
   onTrackSuccess: (text: string) => void;
   onTrackError: () => void;
 }
 
-const WasteForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackError }) => {
+const WasteForm: React.FC<Props> = ({ userId, onTrackStart, onTrackSuccess, onTrackError }) => {
   const [mealType, setMealType] = useState<string>('lunch');
   const [grams, setGrams] = useState<number>(250);
   const [co2, setCo2] = useState<number | null>(null);
@@ -21,6 +22,7 @@ const WasteForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackError
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          user_id: userId,
           meal_type: mealType,
           estimated_waste_grams: grams
         })

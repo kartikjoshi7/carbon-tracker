@@ -9,7 +9,7 @@ router = APIRouter(prefix="/api/v1/footprint", tags=["footprint"])
 
 
 @router.post("/energy")
-async def track_energy(request: EnergyTrackingRequest, background_tasks: BackgroundTasks):
+def track_energy(request: EnergyTrackingRequest, background_tasks: BackgroundTasks):
     """
     Endpoint to calculate and track energy-related CO2e emissions.
     """
@@ -20,23 +20,24 @@ async def track_energy(request: EnergyTrackingRequest, background_tasks: Backgro
     )
 
     insert_footprint_log(
-        user_id="user_123",
+        user_id=request.user_id,
         category="energy",
         metric_value=request.ac_hours_logged,
         calculated_co2=co2
     )
 
     # Enqueue AI insight generation to run in the background
-    background_tasks.add_task(process_eco_insights, "user_123", "energy", request.ac_hours_logged, co2)
+    background_tasks.add_task(process_eco_insights, request.user_id, "energy", request.ac_hours_logged, co2)
 
     return {
         "calculated_co2": co2,
-        "message": "Energy footprint tracked successfully. AI is generating insights in the background."
+        "message": "Energy footprint tracked successfully. AI is generating insights in the background.",
+        "understanding_context": "The global average daily footprint is ~13.7 kg CO2e. Compare your score to understand your impact."
     }
 
 
 @router.post("/transit")
-async def track_transit(request: TransitTrackingRequest, background_tasks: BackgroundTasks):
+def track_transit(request: TransitTrackingRequest, background_tasks: BackgroundTasks):
     """
     Endpoint to calculate and track transit-related CO2e emissions.
     """
@@ -56,50 +57,52 @@ async def track_transit(request: TransitTrackingRequest, background_tasks: Backg
     )
 
     insert_footprint_log(
-        user_id="user_123",
+        user_id=request.user_id,
         category="transit",
         metric_value=request.distance_km,
         calculated_co2=co2
     )
 
     # Enqueue AI insight generation to run in the background
-    background_tasks.add_task(process_eco_insights, "user_123", "transit", request.distance_km, co2)
+    background_tasks.add_task(process_eco_insights, request.user_id, "transit", request.distance_km, co2)
 
     return {
         "calculated_co2": co2,
-        "message": "Transit footprint tracked successfully. AI is generating insights in the background."
+        "message": "Transit footprint tracked successfully. AI is generating insights in the background.",
+        "understanding_context": "The global average daily footprint is ~13.7 kg CO2e. Compare your score to understand your impact."
     }
 
 
 @router.post("/waste")
-async def track_waste(request: WasteTrackingRequest, background_tasks: BackgroundTasks):
+def track_waste(request: WasteTrackingRequest, background_tasks: BackgroundTasks):
     """
     Endpoint to calculate and track waste-related CO2e emissions.
     """
     co2 = calculate_waste_co2(grams=request.estimated_waste_grams)
 
     insert_footprint_log(
-        user_id="user_123",
+        user_id=request.user_id,
         category="waste",
         metric_value=request.estimated_waste_grams,
         calculated_co2=co2
     )
 
     # Enqueue AI insight generation to run in the background
-    background_tasks.add_task(process_eco_insights, "user_123", "waste", request.estimated_waste_grams, co2)
+    background_tasks.add_task(process_eco_insights, request.user_id, "waste", request.estimated_waste_grams, co2)
 
     return {
         "calculated_co2": co2,
-        "message": "Waste footprint tracked successfully. AI is generating insights in the background."
+        "message": "Waste footprint tracked successfully. AI is generating insights in the background.",
+        "understanding_context": "The global average daily footprint is ~13.7 kg CO2e. Compare your score to understand your impact."
     }
 
 @router.get("/history/{user_id}")
-async def fetch_history(user_id: str):
+def fetch_history(user_id: str):
     data = get_footprint_history(user_id)
     return {"history": data}
 
 @router.get("/leaderboard")
-async def fetch_leaderboard():
+def fetch_leaderboard():
     data = get_leaderboard()
     return {"leaderboard": data}
 

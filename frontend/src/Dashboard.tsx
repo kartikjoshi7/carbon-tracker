@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import EnergyForm from './EnergyForm';
 import TransitForm from './TransitForm';
 import WasteForm from './WasteForm';
@@ -14,6 +14,16 @@ const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'track' | 'analytics' | 'leaderboard'>('track');
   const [parsedEnergy, setParsedEnergy] = useState<number | undefined>(undefined);
   const [parsedTransit, setParsedTransit] = useState<number | undefined>(undefined);
+  const [userId, setUserId] = useState<string>('');
+
+  useEffect(() => {
+    let storedId = localStorage.getItem('anonymous_device_id');
+    if (!storedId) {
+      storedId = 'student_' + Math.random().toString(36).substring(7);
+      localStorage.setItem('anonymous_device_id', storedId);
+    }
+    setUserId(storedId);
+  }, []);
 
   const handleTrackStart = () => {
     setInsightState('loading');
@@ -67,18 +77,21 @@ const Dashboard: React.FC = () => {
           <ReceiptUploader onParsed={handleParsed} />
           <div className="dashboard-grid">
             <EnergyForm 
+              userId={userId}
               onTrackStart={handleTrackStart} 
               onTrackSuccess={handleTrackSuccess} 
               onTrackError={handleTrackError}
               initialKwh={parsedEnergy}
             />
             <TransitForm 
+              userId={userId}
               onTrackStart={handleTrackStart} 
               onTrackSuccess={handleTrackSuccess} 
               onTrackError={handleTrackError} 
               initialDistance={parsedTransit}
             />
             <WasteForm 
+              userId={userId}
               onTrackStart={handleTrackStart} 
               onTrackSuccess={handleTrackSuccess} 
               onTrackError={handleTrackError} 
@@ -107,7 +120,7 @@ const Dashboard: React.FC = () => {
         </>
       )}
 
-      {activeTab === 'analytics' && <Analytics />}
+      {activeTab === 'analytics' && <Analytics userId={userId} />}
       {activeTab === 'leaderboard' && <Leaderboard />}
 
     </main>
