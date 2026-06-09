@@ -36,7 +36,9 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <main>
+    <>
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+      <main id="main-content">
       <header className="hero-section">
         <h1 className="emerald-gradient-text">Smart Campus Sustainability Engine</h1>
         <p className="hero-subtitle">Real-time CO₂e tracking & AI-driven reduction strategies.</p>
@@ -109,6 +111,7 @@ const Dashboard: React.FC = () => {
       {activeTab === 'leaderboard' && <Leaderboard />}
 
     </main>
+    </>
   );
 };
 

@@ -54,6 +54,14 @@ const Analytics: React.FC = () => {
             </PieChart>
           </ResponsiveContainer>
         </div>
+        {/* Screen-reader data table fallback */}
+        <table className="sr-only">
+          <caption>Emissions by category data</caption>
+          <thead><tr><th>Category</th><th>CO₂e (kg)</th></tr></thead>
+          <tbody>
+            {pieData.map(d => <tr key={d.name}><td>{d.name}</td><td>{d.value.toFixed(2)}</td></tr>)}
+          </tbody>
+        </table>
       </div>
       
       <div className="glass-panel">
@@ -69,6 +77,14 @@ const Analytics: React.FC = () => {
             </BarChart>
           </ResponsiveContainer>
         </div>
+        {/* Screen-reader data table fallback */}
+        <table className="sr-only">
+          <caption>Recent logs data</caption>
+          <thead><tr><th>Log</th><th>CO₂e (kg)</th></tr></thead>
+          <tbody>
+            {barData.map(d => <tr key={d.name}><td>{d.name}</td><td>{d.co2}</td></tr>)}
+          </tbody>
+        </table>
       </div>
     </div>
   );

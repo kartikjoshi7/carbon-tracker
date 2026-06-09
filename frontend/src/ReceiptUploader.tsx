@@ -35,7 +35,7 @@ const ReceiptUploader: React.FC<Props> = ({ onParsed }) => {
 
   return (
     <div className="glass-panel" style={{ marginBottom: '2rem', textAlign: 'center', padding: '1.5rem' }}>
-      <h3 style={{ margin: '0 0 1rem 0' }}>📄 AI Receipt Parsing</h3>
+      <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem' }}>📄 AI Receipt Parsing</h2>
       <p className="insight-muted" style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>
         Upload a utility bill or transit receipt. Our AI Vision will extract the exact usage and auto-fill your forms!
       </p>
