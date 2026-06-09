@@ -41,20 +41,23 @@ const Dashboard: React.FC = () => {
         <h1 className="emerald-gradient-text">Smart Campus Sustainability Engine</h1>
         <p className="hero-subtitle">Real-time CO₂e tracking & AI-driven reduction strategies.</p>
         
-        <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+        <nav role="tablist" aria-label="Dashboard navigation" style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
           <button 
+            role="tab" aria-selected={activeTab === 'track'}
             style={{ width: 'auto', background: activeTab === 'track' ? 'var(--accent)' : 'rgba(255,255,255,0.1)' }}
             onClick={() => setActiveTab('track')}
           >Track Footprint</button>
           <button 
+            role="tab" aria-selected={activeTab === 'analytics'}
             style={{ width: 'auto', background: activeTab === 'analytics' ? 'var(--accent)' : 'rgba(255,255,255,0.1)' }}
             onClick={() => setActiveTab('analytics')}
           >Data Analytics</button>
           <button 
+            role="tab" aria-selected={activeTab === 'leaderboard'}
             style={{ width: 'auto', background: activeTab === 'leaderboard' ? 'var(--accent)' : 'rgba(255,255,255,0.1)' }}
             onClick={() => setActiveTab('leaderboard')}
           >Leaderboard</button>
-        </div>
+        </nav>
       </header>
 
       {activeTab === 'track' && (

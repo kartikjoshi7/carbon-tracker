@@ -53,18 +53,18 @@ const EnergyForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackErro
       <h2>Energy Tracking</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Roommates Count</label>
-          <input type="number" min="1" value={roommates} onChange={e => setRoommates(Number(e.target.value))} required />
+          <label htmlFor="energy-roommates">Roommates Count</label>
+          <input id="energy-roommates" type="number" min="1" value={roommates} onChange={e => setRoommates(Number(e.target.value))} required />
         </div>
         <div className="form-group">
-          <label>AC Hours Logged</label>
-          <input type="number" min="0" max="24" step="0.1" value={acHours} onChange={e => setAcHours(Number(e.target.value))} required />
+          <label htmlFor="energy-ac-hours">AC Hours Logged</label>
+          <input id="energy-ac-hours" type="number" min="0" max="24" step="0.1" value={acHours} onChange={e => setAcHours(Number(e.target.value))} required />
         </div>
         <div className="form-group">
-          <label>Shared Appliance (kWh)</label>
-          <input type="number" min="0" step="0.1" value={sharedKwh} onChange={e => setSharedKwh(Number(e.target.value))} required />
+          <label htmlFor="energy-shared-kwh">Shared Appliance (kWh)</label>
+          <input id="energy-shared-kwh" type="number" min="0" step="0.1" value={sharedKwh} onChange={e => setSharedKwh(Number(e.target.value))} required />
         </div>
-        <button type="submit" disabled={loading}>Track Energy</button>
+        <button type="submit" disabled={loading} aria-busy={loading}>Track Energy</button>
       </form>
       
       {co2 !== null && (

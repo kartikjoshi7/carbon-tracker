@@ -51,12 +51,12 @@ const TransitForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackErr
       <h2>Transit Tracking</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Distance (km)</label>
-          <input type="number" min="0" max="500" step="0.1" value={distance} onChange={e => setDistance(Number(e.target.value))} required />
+          <label htmlFor="transit-distance">Distance (km)</label>
+          <input id="transit-distance" type="number" min="0" max="500" step="0.1" value={distance} onChange={e => setDistance(Number(e.target.value))} required />
         </div>
         <div className="form-group">
-          <label>Transport Mode</label>
-          <select value={mode} onChange={e => setMode(e.target.value)}>
+          <label htmlFor="transit-mode">Transport Mode</label>
+          <select id="transit-mode" value={mode} onChange={e => setMode(e.target.value)}>
             <option value="shared_rickshaw">Shared Rickshaw</option>
             <option value="campus_shuttle">Campus Shuttle</option>
             <option value="two_wheeler">Two Wheeler</option>
@@ -64,10 +64,10 @@ const TransitForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackErr
           </select>
         </div>
         <div className="form-group">
-          <label>Passenger Count</label>
-          <input type="number" min="1" value={passengers} onChange={e => setPassengers(Number(e.target.value))} required />
+          <label htmlFor="transit-passengers">Passenger Count</label>
+          <input id="transit-passengers" type="number" min="1" value={passengers} onChange={e => setPassengers(Number(e.target.value))} required />
         </div>
-        <button type="submit" disabled={loading}>Track Transit</button>
+        <button type="submit" disabled={loading} aria-busy={loading}>Track Transit</button>
       </form>
       
       {co2 !== null && (

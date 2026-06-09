@@ -2,8 +2,8 @@ import logging
 import os
 from typing import Any, Optional
 
-from dotenv import load_dotenv
-from supabase import create_client, Client
+from dotenv import load_dotenv  # type: ignore
+from supabase import create_client, Client  # type: ignore
 
 logger = logging.getLogger(__name__)
 

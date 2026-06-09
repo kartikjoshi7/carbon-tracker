@@ -44,18 +44,18 @@ const WasteForm: React.FC<Props> = ({ onTrackStart, onTrackSuccess, onTrackError
       <h2>Waste Tracking</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Meal Type</label>
-          <select value={mealType} onChange={e => setMealType(e.target.value)}>
+          <label htmlFor="waste-meal-type">Meal Type</label>
+          <select id="waste-meal-type" value={mealType} onChange={e => setMealType(e.target.value)}>
             <option value="breakfast">Breakfast</option>
             <option value="lunch">Lunch</option>
             <option value="dinner">Dinner</option>
           </select>
         </div>
         <div className="form-group">
-          <label>Estimated Waste (grams)</label>
-          <input type="number" min="0" max="5000" step="0.1" value={grams} onChange={e => setGrams(Number(e.target.value))} required />
+          <label htmlFor="waste-grams">Estimated Waste (grams)</label>
+          <input id="waste-grams" type="number" min="0" max="5000" step="0.1" value={grams} onChange={e => setGrams(Number(e.target.value))} required />
         </div>
-        <button type="submit" disabled={loading}>Track Waste</button>
+        <button type="submit" disabled={loading} aria-busy={loading}>Track Waste</button>
       </form>
       
       {co2 !== null && (
