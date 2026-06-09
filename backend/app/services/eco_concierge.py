@@ -11,18 +11,18 @@ def generate_insights_sync(category: str, metric_value: float, calculated_co2: f
     gemini_key = os.getenv("GEMINI_API_KEY")
     if not gemini_key:
         return _fallback_generator(category, metric_value, calculated_co2)
-    
+
     try:
         import google.generativeai as genai  # type: ignore
         genai.configure(api_key=gemini_key)
         # Using a fast, lightweight model for background tasks
         model = genai.GenerativeModel('gemini-1.5-flash')
-        
+
         prompt = f"""
         You are an Eco-Concierge tailored to a university student living in a shared off-campus apartment.
         The user just tracked their carbon footprint for category: {category}.
         Metric value: {metric_value}. Calculated CO2e: {calculated_co2} kg.
-        Provide a concise, highly tailored, 1-2 sentence actionable tip. 
+        Provide a concise, highly tailored, 1-2 sentence actionable tip.
         Focus on split utility bills, coordinating shared commutes to campus, and cafeteria/meal waste if applicable.
         """
         response = model.generate_content(prompt)
@@ -45,13 +45,13 @@ async def process_eco_insights(user_id: str, category: str, metric_value: float,
     Background task to generate eco-concierge insights without blocking the main thread.
     """
     insight = generate_insights_sync(category, metric_value, calculated_co2)
-    
+
     # Save this insight to Supabase
     from app.services.database import supabase
     if not supabase:
         logger.warning("Supabase client not initialized, skipping insight persistence.")
         return
-        
+
     payload = {
         "user_id": user_id,
         "category": category,
@@ -72,25 +72,26 @@ async def parse_receipt_image(file_bytes: bytes) -> dict:
     if not gemini_key:
         # Fallback if no key: simulate an energy bill parse
         return {"category": "energy", "value": 150.0}
-    
+
     try:
-        import google.generativeai as genai  # type: ignore
-        from PIL import Image
         import io
         import json
-        
+
+        import google.generativeai as genai  # type: ignore
+        from PIL import Image
+
         genai.configure(api_key=gemini_key)
         model = genai.GenerativeModel('gemini-1.5-flash')
-        
+
         image = Image.open(io.BytesIO(file_bytes))
         prompt = "Analyze this receipt or bill. Extract the total electricity usage in kWh (for energy bills) or total distance in km (for travel receipts). Return ONLY a raw JSON object with keys 'category' (either 'energy' or 'transit') and 'value' (a float). Do not include markdown code block formatting."
-        
+
         response = model.generate_content([prompt, image])
         # Very simple JSON extraction
         text = response.text.strip()
         if text.startswith("```json"):
             text = text[7:-3].strip()
-            
+
         data = json.loads(text)
         return {"category": data.get("category", "energy"), "value": float(data.get("value", 0.0))}
     except Exception as e:

@@ -3,9 +3,7 @@ Integration tests for the Carbon Engine FastAPI endpoints.
 Uses FastAPI's TestClient to validate HTTP status codes,
 response structure, and Pydantic validation error handling.
 """
-import pytest
 from fastapi.testclient import TestClient
-
 
 # ── Health Check ────────────────────────────────────────────────────
 

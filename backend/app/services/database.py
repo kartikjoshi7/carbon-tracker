@@ -1,9 +1,9 @@
 import logging
 import os
-from typing import Any, Optional
+from typing import Any
 
 from dotenv import load_dotenv  # type: ignore
-from supabase import create_client, Client  # type: ignore
+from supabase import Client, create_client  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -26,16 +26,16 @@ def insert_footprint_log(
     category: str,
     metric_value: float,
     calculated_co2: float
-) -> Optional[Any]:
+) -> Any | None:
     """
     Inserts a footprint log into the footprint_logs table.
-    
+
     Args:
         user_id (str): The unique identifier of the user.
         category (str): The category of the activity (e.g., 'energy', 'transit', 'waste').
         metric_value (float): The raw input metric value.
         calculated_co2 (float): The computed CO2 equivalent footprint.
-        
+
     Returns:
         Optional[Any]: The data returned by Supabase upon successful insert, or None if an error occurred.
     """
@@ -80,7 +80,7 @@ def get_leaderboard() -> list:
         for row in data:
             uid = row["user_id"]
             scores[uid] = scores.get(uid, 0) + row["calculated_co2"]
-        
+
         # Sort by lowest footprint (encouraging reduction)
         sorted_scores = sorted([{"user_id": k, "total_co2": round(v, 2)} for k, v in scores.items()], key=lambda x: float(str(x["total_co2"])))
         return sorted_scores[:10]

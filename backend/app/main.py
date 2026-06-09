@@ -1,10 +1,11 @@
-from typing import Dict
-from app.routers import footprint  # type: ignore
+
 from fastapi import FastAPI, Request  # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore
 from slowapi import Limiter, _rate_limit_exceeded_handler  # type: ignore
 from slowapi.errors import RateLimitExceeded  # type: ignore
 from slowapi.util import get_remote_address  # type: ignore
+
+from app.routers import footprint  # type: ignore
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -44,7 +45,7 @@ async def add_security_headers(request: Request, call_next):  # type: ignore
 
 @app.get("/")
 @limiter.limit("10/minute")
-async def health_check(request: Request) -> Dict[str, str]:
+async def health_check(request: Request) -> dict[str, str]:
     """
     Root health check path.
     """

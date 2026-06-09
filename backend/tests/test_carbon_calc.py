@@ -2,14 +2,12 @@
 Unit tests for the pure deterministic CO2e calculation functions.
 Tests cover normal inputs, edge cases, zero values, and boundary conditions.
 """
-import pytest
 
 from app.services.carbon_calc import (
     calculate_energy_co2,
     calculate_transit_co2,
     calculate_waste_co2,
 )
-
 
 # ── Energy CO2 Calculation ──────────────────────────────────────────
 
