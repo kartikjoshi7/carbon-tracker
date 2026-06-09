@@ -27,7 +27,7 @@ jobs:
         run: pytest tests/ -v
         env:
           SUPABASE_URL: "https://mock.supabase.co"
-          SUPABASE_KEY: "mock_key"
+          SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.xkXCYxpMbId78W1OCa1aNXNIAEE-yJeACJE7XUvC12k"
 
   frontend:
     name: Frontend (React + TypeScript)
