@@ -79,3 +79,28 @@ class WasteTrackingRequest(BaseModel):
         le=5000.0,
         description="The estimated weight of the commensal food waste in grams. Must be between 0.0 and 5000.0."
     )
+
+
+# ── Response Models ─────────────────────────────────────────────────
+
+class FootprintResponse(BaseModel):
+    """Standard response for all footprint tracking endpoints."""
+    calculated_co2: float = Field(..., description="Calculated CO₂e in kg.")
+    message: str = Field(..., description="Human-readable success message.")
+    understanding_context: str = Field(..., description="Context for comparing against global averages.")
+
+
+class HistoryResponse(BaseModel):
+    """Response for the history endpoint."""
+    history: list[dict[str, object]] = Field(default_factory=list, description="List of footprint log entries.")
+
+
+class LeaderboardResponse(BaseModel):
+    """Response for the leaderboard endpoint."""
+    leaderboard: list[dict[str, object]] = Field(default_factory=list, description="Top users by lowest CO₂e.")
+
+
+class ReceiptResponse(BaseModel):
+    """Response for receipt parsing."""
+    category: str = Field(..., description="Detected category (energy or transit).")
+    value: float = Field(..., description="Extracted numerical value.")

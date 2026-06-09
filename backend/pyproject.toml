@@ -1,7 +1,7 @@
 [project]
 name = "carbon-engine-backend"
 version = "1.0.0"
-description = "FastAPI backend for the Smart Campus Sustainability Engine"
+description = "FastAPI backend for the Carbon Footprint Awareness Platform"
 requires-python = ">=3.10"
 
 [tool.ruff]
@@ -22,3 +22,10 @@ ignore = ["E501", "B008"]  # line length handled by formatter, B008 is for FastA
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[tool.coverage.run]
+source = ["app"]
+
+[tool.coverage.report]
+show_missing = true
+

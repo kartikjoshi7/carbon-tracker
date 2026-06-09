@@ -1,8 +1,8 @@
 # Carbon Footprint Awareness Platform 🌱
 
 ![build](https://img.shields.io/badge/build-passing-brightgreen)
-![coverage](https://img.shields.io/badge/coverage-84%25-yellow)
-![tests](https://img.shields.io/badge/tests-68_passed-brightgreen)
+![coverage](https://img.shields.io/badge/coverage-90%25-brightgreen)
+![tests](https://img.shields.io/badge/tests-75_passed-brightgreen)
 ![python](https://img.shields.io/badge/python-3.12-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
@@ -266,13 +266,13 @@ behind Render's load balancer without shared state.
 | --- | --- | --- | --- |
 | Backend unit | `pytest tests/test_carbon_calc.py -v` | All 3 CO₂e functions: edge cases, boundary values, precision | 22 tests, 100% coverage on `carbon_calc.py` |
 | Backend integration | `pytest tests/test_api.py -v` | All endpoints, Pydantic 422 validation, DI mock overrides | 15 tests, 93% coverage on `footprint.py` |
-| Backend services | `pytest tests/test_eco_concierge.py tests/test_database.py tests/test_deps.py -v` | Fallback logic, AI failure paths, mock DB, DI singleton | 24 tests |
+| Backend services | `pytest tests/test_eco_concierge.py tests/test_database.py tests/test_deps.py -v` | Fallback logic, AI success+failure paths, mock DB, DI singleton, Gemini model cascade, receipt vision parsing | 31 tests |
 | Backend security | `pytest tests/test_main.py -v` | Security headers on every response, SPA fallback | 7 tests |
 | Frontend components | `cd frontend && npx vitest run` | Component rendering, tab navigation, form bindings | — |
 | Frontend a11y | `cd frontend && npx vitest run` | Automated **axe-core** assertions — zero violations | — |
 | Lint | `ruff check app/ tests/` | Code quality gates | Zero violations |
 | Type check | `mypy app/` · `npx tsc -b --noEmit` | Static type analysis | Zero errors |
-| Coverage | `pytest --cov=app` | Backend line coverage | **84% overall** (100% on core math, 95% on DB, 93% on routes) |
+| Coverage | `pytest --cov=app` | Backend line coverage | **90% overall** (100% on core math, 96% on DB, 93% on routes, 88% on AI service) |
 | CI | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | Runs all of the above on every push to `main` | Auto-triggered |
 
 ---
@@ -306,10 +306,10 @@ behind Render's load balancer without shared state.
 
 | Axis | Where to look | Evidence |
 | --- | --- | --- |
-| **Code Quality** | Typed end-to-end (Pydantic v2 + TypeScript strict). Dependency injection via [`deps.py`](backend/app/deps.py) decouples DB and AI clients. Pure functions in [`carbon_calc.py`](backend/app/services/carbon_calc.py) with cited emission constants. `ruff` linter + `mypy` type checks in CI. | Zero `ruff` violations. Zero `mypy` errors. 100% coverage on math engine. |
+| **Code Quality** | Typed end-to-end (Pydantic v2 request *and* response models + TypeScript strict). Dependency injection via [`deps.py`](backend/app/deps.py) decouples DB and AI clients. Pure functions in [`carbon_calc.py`](backend/app/services/carbon_calc.py) with cited emission constants. Module docstrings on every file. Named constants — zero magic strings or numbers. `ruff` linter + `mypy` strict type checks in CI. PEP 561 `py.typed` marker. | Zero `ruff` violations. Zero `mypy` errors. 100% coverage on math engine. |
 | **Security** | Security headers middleware in [`main.py`](backend/app/main.py). `slowapi` rate-limiting (10/min). Bounded Pydantic input validation. Restrictive CORS allow-list. Non-root container user. Secrets via env vars only (none in repo). HTTPS enforced at edge. Dependabot enabled. | 5 security header assertions in `test_main.py`. |
 | **Efficiency** | PWA with Service Worker offline caching. AI insight generation offloaded to `BackgroundTasks` (non-blocking). Multi-stage Docker image (node build → slim python runtime). Stateless pure calculation engine. | Stateless, horizontally scalable. |
-| **Testing** | 68 backend tests across 5 test modules. `vitest` frontend tests with automated `axe-core` a11y assertions. CI runs lint, type-check, test, and build on every push. | 84% backend coverage. Zero axe-core violations. |
+| **Testing** | 75 backend tests across 6 test modules. `vitest` frontend tests with automated `axe-core` a11y assertions. CI runs lint, type-check, test, and build on every push. | 90% backend coverage. Zero axe-core violations. |
 | **Accessibility** | Visually hidden data tables (`.sr-only`) backing all charts. Skip-to-content link. Bound `<label>` controls. ARIA tablists with `aria-selected`. `aria-live="polite"` for dynamic AI insights. `aria-busy` loading states. See [`Dashboard.tsx`](frontend/src/Dashboard.tsx). | Zero axe-core violations in CI. |
 | **Google Services** | Google Gemini via `google-generativeai` for text insights ([`eco_concierge.py`](backend/app/services/eco_concierge.py)) and multimodal Vision for receipt parsing. Cascading model fallback (tries multiple model versions before rule engine). | Fallback tested in `test_eco_concierge.py`. |
 | **Problem Statement Alignment** | Understand → Track → Reduce loop. Carbon engine quantifies baselines. History tracks trends. Gemini-powered insights target the largest contributor. Leaderboard sustains engagement via social comparison. Receipt parser reduces input friction. | All three pillars mapped to features with tests. |

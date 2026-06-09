@@ -10,7 +10,15 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, UploadFile
 from supabase import Client
 
 from app.deps import get_ai_client, get_db_client
-from app.schemas.footprint import EnergyTrackingRequest, TransitTrackingRequest, WasteTrackingRequest
+from app.schemas.footprint import (
+    EnergyTrackingRequest,
+    FootprintResponse,
+    HistoryResponse,
+    LeaderboardResponse,
+    ReceiptResponse,
+    TransitTrackingRequest,
+    WasteTrackingRequest,
+)
 from app.services.carbon_calc import calculate_energy_co2, calculate_transit_co2, calculate_waste_co2
 from app.services.database import get_footprint_history, get_leaderboard, insert_footprint_log
 from app.services.eco_concierge import parse_receipt_image, process_eco_insights
@@ -37,7 +45,7 @@ TRANSIT_MODE_MAP: dict[str, str] = {
 
 # ── Tracking Endpoints ─────────────────────────────────────────────
 
-@router.post("/energy")
+@router.post("/energy", response_model=FootprintResponse)
 def track_energy(
     request: EnergyTrackingRequest,
     background_tasks: BackgroundTasks,
@@ -66,7 +74,7 @@ def track_energy(
     }
 
 
-@router.post("/transit")
+@router.post("/transit", response_model=FootprintResponse)
 def track_transit(
     request: TransitTrackingRequest,
     background_tasks: BackgroundTasks,
@@ -97,7 +105,7 @@ def track_transit(
     }
 
 
-@router.post("/waste")
+@router.post("/waste", response_model=FootprintResponse)
 def track_waste(
     request: WasteTrackingRequest,
     background_tasks: BackgroundTasks,
@@ -124,14 +132,14 @@ def track_waste(
 
 # ── Read Endpoints ─────────────────────────────────────────────────
 
-@router.get("/history/{user_id}")
+@router.get("/history/{user_id}", response_model=HistoryResponse)
 def fetch_history(user_id: str, db: Client | None = Depends(get_db_client)) -> dict[str, list]:
     """Retrieve the emission history for an anonymous device."""
     data = get_footprint_history(db, user_id)
     return {"history": data}
 
 
-@router.get("/leaderboard")
+@router.get("/leaderboard", response_model=LeaderboardResponse)
 def fetch_leaderboard(db: Client | None = Depends(get_db_client)) -> dict[str, list]:
     """Return the top 10 users ranked by lowest total CO₂e."""
     data = get_leaderboard(db)
@@ -140,7 +148,7 @@ def fetch_leaderboard(db: Client | None = Depends(get_db_client)) -> dict[str, l
 
 # ── Receipt Parser ─────────────────────────────────────────────────
 
-@router.post("/upload-receipt")
+@router.post("/upload-receipt", response_model=ReceiptResponse)
 async def upload_receipt(
     file: UploadFile = File(...),
     ai: Any = Depends(get_ai_client),
