@@ -1,15 +1,23 @@
-from fastapi import APIRouter, BackgroundTasks, File, UploadFile
+from typing import Any
+from fastapi import APIRouter, BackgroundTasks, File, UploadFile, Depends
+from supabase import Client
 
 from app.schemas.footprint import EnergyTrackingRequest, TransitTrackingRequest, WasteTrackingRequest
 from app.services.carbon_calc import calculate_energy_co2, calculate_transit_co2, calculate_waste_co2
 from app.services.database import get_footprint_history, get_leaderboard, insert_footprint_log
 from app.services.eco_concierge import parse_receipt_image, process_eco_insights
+from app.deps import get_db_client, get_ai_client
 
 router = APIRouter(prefix="/api/v1/footprint", tags=["footprint"])
 
 
 @router.post("/energy")
-def track_energy(request: EnergyTrackingRequest, background_tasks: BackgroundTasks):
+def track_energy(
+    request: EnergyTrackingRequest, 
+    background_tasks: BackgroundTasks,
+    db: Client | None = Depends(get_db_client),
+    ai: Any = Depends(get_ai_client)
+):
     """
     Endpoint to calculate and track energy-related CO2e emissions.
     """
@@ -20,6 +28,7 @@ def track_energy(request: EnergyTrackingRequest, background_tasks: BackgroundTas
     )
 
     insert_footprint_log(
+        db=db,
         user_id=request.user_id,
         category="energy",
         metric_value=request.ac_hours_logged,
@@ -27,7 +36,7 @@ def track_energy(request: EnergyTrackingRequest, background_tasks: BackgroundTas
     )
 
     # Enqueue AI insight generation to run in the background
-    background_tasks.add_task(process_eco_insights, request.user_id, "energy", request.ac_hours_logged, co2)
+    background_tasks.add_task(process_eco_insights, db, ai, request.user_id, "energy", request.ac_hours_logged, co2)
 
     return {
         "calculated_co2": co2,
@@ -37,7 +46,12 @@ def track_energy(request: EnergyTrackingRequest, background_tasks: BackgroundTas
 
 
 @router.post("/transit")
-def track_transit(request: TransitTrackingRequest, background_tasks: BackgroundTasks):
+def track_transit(
+    request: TransitTrackingRequest, 
+    background_tasks: BackgroundTasks,
+    db: Client | None = Depends(get_db_client),
+    ai: Any = Depends(get_ai_client)
+):
     """
     Endpoint to calculate and track transit-related CO2e emissions.
     """
@@ -57,6 +71,7 @@ def track_transit(request: TransitTrackingRequest, background_tasks: BackgroundT
     )
 
     insert_footprint_log(
+        db=db,
         user_id=request.user_id,
         category="transit",
         metric_value=request.distance_km,
@@ -64,7 +79,7 @@ def track_transit(request: TransitTrackingRequest, background_tasks: BackgroundT
     )
 
     # Enqueue AI insight generation to run in the background
-    background_tasks.add_task(process_eco_insights, request.user_id, "transit", request.distance_km, co2)
+    background_tasks.add_task(process_eco_insights, db, ai, request.user_id, "transit", request.distance_km, co2)
 
     return {
         "calculated_co2": co2,
@@ -74,13 +89,19 @@ def track_transit(request: TransitTrackingRequest, background_tasks: BackgroundT
 
 
 @router.post("/waste")
-def track_waste(request: WasteTrackingRequest, background_tasks: BackgroundTasks):
+def track_waste(
+    request: WasteTrackingRequest, 
+    background_tasks: BackgroundTasks,
+    db: Client | None = Depends(get_db_client),
+    ai: Any = Depends(get_ai_client)
+):
     """
     Endpoint to calculate and track waste-related CO2e emissions.
     """
     co2 = calculate_waste_co2(grams=request.estimated_waste_grams)
 
     insert_footprint_log(
+        db=db,
         user_id=request.user_id,
         category="waste",
         metric_value=request.estimated_waste_grams,
@@ -88,7 +109,7 @@ def track_waste(request: WasteTrackingRequest, background_tasks: BackgroundTasks
     )
 
     # Enqueue AI insight generation to run in the background
-    background_tasks.add_task(process_eco_insights, request.user_id, "waste", request.estimated_waste_grams, co2)
+    background_tasks.add_task(process_eco_insights, db, ai, request.user_id, "waste", request.estimated_waste_grams, co2)
 
     return {
         "calculated_co2": co2,
@@ -97,17 +118,20 @@ def track_waste(request: WasteTrackingRequest, background_tasks: BackgroundTasks
     }
 
 @router.get("/history/{user_id}")
-def fetch_history(user_id: str):
-    data = get_footprint_history(user_id)
+def fetch_history(user_id: str, db: Client | None = Depends(get_db_client)):
+    data = get_footprint_history(db, user_id)
     return {"history": data}
 
 @router.get("/leaderboard")
-def fetch_leaderboard():
-    data = get_leaderboard()
+def fetch_leaderboard(db: Client | None = Depends(get_db_client)):
+    data = get_leaderboard(db)
     return {"leaderboard": data}
 
 @router.post("/upload-receipt")
-async def upload_receipt(file: UploadFile = File(...)):
+async def upload_receipt(
+    file: UploadFile = File(...),
+    ai: Any = Depends(get_ai_client)
+):
     contents = await file.read()
-    parsed_data = await parse_receipt_image(contents)
+    parsed_data = await parse_receipt_image(ai, contents)
     return parsed_data

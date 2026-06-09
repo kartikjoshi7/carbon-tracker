@@ -2,26 +2,13 @@ import logging
 import os
 from typing import Any
 
-from dotenv import load_dotenv  # type: ignore
-from supabase import Client, create_client  # type: ignore
+from supabase import Client  # type: ignore
 
 logger = logging.getLogger(__name__)
 
-# Load environment variables from the .env file
-load_dotenv()
-
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-
-# Fail fast validation check
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise ValueError("Missing SUPABASE_URL or SUPABASE_KEY in environment variables.")
-
-# Initialize the Supabase client
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
 
 def insert_footprint_log(
+    db: Client | None,
     user_id: str,
     category: str,
     metric_value: float,
@@ -47,15 +34,19 @@ def insert_footprint_log(
     }
 
     try:
-        response = supabase.table("footprint_logs").insert(payload).execute()
+        if not db:
+            raise ValueError("No database client available.")
+        response = db.table("footprint_logs").insert(payload).execute()
         return response.data
     except Exception as e:
         logger.error(f"Network or database error while inserting footprint log: {e}")
         return None
 
-def get_footprint_history(user_id: str) -> list:
+def get_footprint_history(db: Client | None, user_id: str) -> list:
     try:
-        response = supabase.table("footprint_logs").select("*").eq("user_id", user_id).execute()
+        if not db:
+            raise ValueError("No database client available.")
+        response = db.table("footprint_logs").select("*").eq("user_id", user_id).execute()
         # If response data is empty, table might be newly created or empty
         if not response.data:
             raise ValueError("No data found")
@@ -70,9 +61,11 @@ def get_footprint_history(user_id: str) -> list:
             {"category": "transit", "calculated_co2": 5.8, "created_at": "2023-10-05"},
         ]
 
-def get_leaderboard() -> list:
+def get_leaderboard(db: Client | None) -> list:
     try:
-        response = supabase.table("footprint_logs").select("user_id, calculated_co2").execute()
+        if not db:
+            raise ValueError("No database client available.")
+        response = db.table("footprint_logs").select("user_id, calculated_co2").execute()
         data = response.data
         if not data:
             raise ValueError("No data found")

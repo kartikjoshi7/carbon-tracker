@@ -3,19 +3,17 @@ import os
 
 logger = logging.getLogger(__name__)
 
-def generate_insights_sync(category: str, metric_value: float, calculated_co2: float) -> str:
+from typing import Any
+
+def generate_insights_sync(ai: Any, category: str, metric_value: float, calculated_co2: float) -> str:
     """
-    Hybrid model: checks for GEMINI_API_KEY. If absent, falls back to static rule-based generator
+    Hybrid model: checks for injected AI client. If absent, falls back to static rule-based generator
     targeting a generic university student persona.
     """
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_key:
+    if not ai:
         return _fallback_generator(category, metric_value, calculated_co2)
 
     try:
-        import google.generativeai as genai  # type: ignore
-        genai.configure(api_key=gemini_key)
-
         prompt = f"""
         You are an Eco-Concierge tailored to a university student living in a shared off-campus apartment.
         The user just tracked their carbon footprint for category: {category}.
@@ -28,7 +26,7 @@ def generate_insights_sync(category: str, metric_value: float, calculated_co2: f
         last_error = None
         for model_name in models_to_try:
             try:
-                model = genai.GenerativeModel(model_name)
+                model = ai.GenerativeModel(model_name)
                 response = model.generate_content(prompt)
                 return response.text.strip()
             except Exception as e:
@@ -50,16 +48,15 @@ def _fallback_generator(category: str, metric_value: float, calculated_co2: floa
         return f"University cafeteria portions are large. Saving {metric_value}g of food lowers waste footprint by {calculated_co2}kg CO2e."
     return "Every small action counts towards a greener campus."
 
-def process_eco_insights(user_id: str, category: str, metric_value: float, calculated_co2: float):
+def process_eco_insights(db: Any, ai: Any, user_id: str, category: str, metric_value: float, calculated_co2: float):
     """
     Background task to generate eco-concierge insights without blocking the main thread.
     """
-    insight = generate_insights_sync(category, metric_value, calculated_co2)
+    insight = generate_insights_sync(ai, category, metric_value, calculated_co2)
 
     # Save this insight to Supabase
-    from app.services.database import supabase
-    if not supabase:
-        logger.warning("Supabase client not initialized, skipping insight persistence.")
+    if not db:
+        logger.warning("Supabase client not available, skipping insight persistence.")
         return
 
     payload = {
@@ -69,28 +66,24 @@ def process_eco_insights(user_id: str, category: str, metric_value: float, calcu
         "related_co2": calculated_co2
     }
     try:
-        supabase.table("footprint_insights").insert(payload).execute()
+        db.table("footprint_insights").insert(payload).execute()
         logger.info(f"Insight saved successfully for {user_id}")
     except Exception as e:
         logger.error(f"Failed to save insight to Supabase: {e}")
 
-async def parse_receipt_image(file_bytes: bytes) -> dict:
+async def parse_receipt_image(ai: Any, file_bytes: bytes) -> dict:
     """
     Uses Gemini Vision to parse an uploaded utility bill or travel receipt.
     """
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_key:
+    if not ai:
         # Fallback if no key: simulate an energy bill parse
         return {"category": "energy", "value": 150.0}
 
     try:
         import io
         import json
-
-        import google.generativeai as genai  # type: ignore
         from PIL import Image
 
-        genai.configure(api_key=gemini_key)
         image = Image.open(io.BytesIO(file_bytes))
         prompt = "Analyze this receipt or bill. Extract the total electricity usage in kWh (for energy bills) or total distance in km (for travel receipts). Return ONLY a raw JSON object with keys 'category' (either 'energy' or 'transit') and 'value' (a float). Do not include markdown code block formatting."
 
@@ -98,7 +91,7 @@ async def parse_receipt_image(file_bytes: bytes) -> dict:
         last_error = None
         for model_name in models_to_try:
             try:
-                model = genai.GenerativeModel(model_name)
+                model = ai.GenerativeModel(model_name)
                 response = model.generate_content([prompt, image])
 
                 text = response.text.strip()
