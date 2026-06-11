@@ -13,7 +13,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler  # type: ignore[import
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-untyped]
 from slowapi.util import get_remote_address  # type: ignore[import-untyped]
 
-from app.routers import footprint
+from app.routers import footprint, nyx_integration
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -76,6 +76,7 @@ async def health_check(request: Request) -> dict[str, str]:
 # ── Router Registration ────────────────────────────────────────────
 
 app.include_router(footprint.router)
+app.include_router(nyx_integration.router)
 
 
 # ── SPA Serving ─────────────────────────────────────────────────────
