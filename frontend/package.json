@@ -30,7 +30,7 @@
     "globals": "^17.6.0",
     "jest-axe": "^10.0.0",
     "jsdom": "^29.1.1",
-    "recharts": "^3.8.1",
+    "recharts": "^3.10.1",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12",
